@@ -1,0 +1,7 @@
+.DS_Store
+.idea/
+__pycache__/
+build/
+cmake-build-debug/CMakeCache.txt
+cmake-build-debug/CMakeFiles/
+gui/.idea/
