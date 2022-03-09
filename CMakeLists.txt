@@ -3,4 +3,4 @@ project(partition_channel)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_library(partition_channel PartitionChannelLibrary.h src/Channel.h src/Printer.h src/Timer.h)
+add_library(partition_channel PartitionChannelLibrary.h src/Channel.h src/Printer.h src/Timer.h src/PartitionConstant.h)
