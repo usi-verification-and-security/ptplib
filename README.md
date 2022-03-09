@@ -9,20 +9,20 @@
 #### 2. An async printer
    To output coloured text which can be used in multi-threading context. 
 
-A shared cross-thread object of opensmt::synced_stream, synced_stream, can be used as follow:
+A shared cross-thread object of partitionChannel::synced_stream, can be used as follow:
    ```
-   opensmt::synced_stream synced_stream
+   partitionChannel::synced_stream synced_stream
    synced_stream(std::clog);
    synced_stream.println(Color::FG_BrightCyan, "status:", status, ...);
    ```
 to have a thread-safe coloured stream.
 
-#### 3. Aserialization and deserialization interface
+#### 3. A serialization and deserialization interface
 
 #### 4. A manual time checker 
 Which can start, stop, accumulate and reset the time.
    ```
-   opensmt::StoppableWatch timer;
+   partitionChannel::StoppableWatch timer;
    timer.start();
    timer.elapsed_time_milliseconds()
    ```
@@ -30,7 +30,7 @@ Which can start, stop, accumulate and reset the time.
 ####  5. An async time checker/printer 
 Which is triggered on contructor/destructor, automatically measures the time.
    ```
-   opensmt::PrintStopWatch timer("Stop Watch", synced_stream, Color::Code:: FG_BrightCyan );
+   partitionChannel::PrintStopWatch timer("Stop Watch", synced_stream, Color::Code:: FG_BrightCyan );
    ```
    
 
