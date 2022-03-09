@@ -9,7 +9,7 @@
 
 #include "Timer.h"
 
-namespace opensmt {
+namespace partitionChannel {
 
     namespace Color
     {

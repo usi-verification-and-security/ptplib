@@ -16,7 +16,7 @@
 #include <sys/resource.h>
 #include <cassert>
 
-namespace opensmt {
+namespace partitionChannel {
 // A c++ wrapper for struct timeval
     class BTime {
         time_t tv_sec;

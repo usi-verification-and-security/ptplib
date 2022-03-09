@@ -18,7 +18,7 @@
 #include <sstream>
 
 
-namespace partitionChannel {
+namespace partitionChannel::net {
     typedef std::string_view header_prefix;
     header_prefix Header::statistic = "statistic";
     header_prefix Header::parameter = "parameter";
