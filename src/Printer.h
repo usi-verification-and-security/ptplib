@@ -90,10 +90,10 @@ namespace partitionChannel {
             strcpy(name, _name);
         }
 
-        PrintStopWatch(std::string_view _name, synced_stream & _ss, Color::Code cc = Color::Code::FG_DEFAULT)
+        PrintStopWatch(std::string & _name, synced_stream & _ss, Color::Code cc = Color::Code::FG_DEFAULT)
                 : ss(_ss), colorCode(cc) {
             timer.start();
-            name = _name
+            strcpy(name, _name.c_str());
         }
 
         ~PrintStopWatch() {
