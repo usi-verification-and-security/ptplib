@@ -9,6 +9,7 @@
 #define PTPLIB_PRINTER_HPP
 
 #include "PTPLib/Timer.hpp"
+#include <mutex>
 
 namespace PTPLib {
 
