@@ -6,7 +6,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#pragma once
+#ifndef PTPLIB_TIMER_HPP
+#define PTPLIB_TIMER_HPP
 
 #include <string.h>
 #include <ostream>
@@ -192,3 +193,4 @@ namespace partitionChannel {
         std::chrono::duration<long double> accumulated_;
     };
 }
+#endif // PTPLIB_TIMER_HPP

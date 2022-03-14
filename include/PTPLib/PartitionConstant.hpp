@@ -5,7 +5,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#pragma once
+#ifndef PTPLIB_PARTITION_CONSTANT_HPP
+#define PTPLIB_PARTITION_CONSTANT_HPP
 
 #include <iostream>
 
@@ -45,3 +46,4 @@ namespace PartitionChannel
 
 }
 
+#endif // PTPLIB_PARTITION_CONSTANT_HPP

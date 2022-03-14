@@ -6,7 +6,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#pragma once
+#ifndef PTPLIB_EXCEPTION_HPP
+#define PTPLIB_EXCEPTION_HPP
 
 #include <exception>
 #include <iostream>
@@ -25,3 +26,4 @@ public:
     const char * what() const throw() { return this->msg.c_str(); }
 };
 
+#endif // PTPLIB_EXCEPTION_HPP

@@ -6,7 +6,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#pragma once
+#ifndef PTPLIB_LIB_HPP
+#define PTPLIB_LIB_HPP
 
 #include "Exception.h"
 #include "ChannelConfig.h"
@@ -134,3 +135,4 @@ const std::string to_string<bool>(const bool & b)
     return b ? "true" : "false";
 }
 
+#endif // PTPLIB_LIB_HPP

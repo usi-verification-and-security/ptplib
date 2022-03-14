@@ -5,7 +5,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#pragma once
+#ifndef PTPLIB_PRINTER_HPP
+#define PTPLIB_PRINTER_HPP
 
 #include "Timer.h"
 
@@ -101,3 +102,4 @@ namespace partitionChannel {
         }
     };
 }
+#endif // PTPLIB_PRINTER_HPP

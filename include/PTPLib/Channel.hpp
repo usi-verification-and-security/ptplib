@@ -5,7 +5,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#pragma once
+#ifndef PTPLIB_CHANNEL_HPP
+#define PTPLIB_CHANNEL_HPP
 
 #include <vector>
 #include <mutex>
@@ -146,3 +147,5 @@ public:
     }
 
 };
+
+#endif PTPLIB_CHANNEL_HPP
