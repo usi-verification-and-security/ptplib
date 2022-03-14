@@ -9,7 +9,7 @@
 #ifndef PTPLIB_HEADER_HPP
 #define PTPLIB_HEADER_HPP
 
-#include "lib.h"
+#include "PTPLib/lib.h"
 
 #include <array>
 #include <iomanip>

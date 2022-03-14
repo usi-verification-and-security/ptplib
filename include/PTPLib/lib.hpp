@@ -9,8 +9,8 @@
 #ifndef PTPLIB_LIB_HPP
 #define PTPLIB_LIB_HPP
 
-#include "Exception.h"
-#include "ChannelConfig.h"
+#include "PTPLib/Exception.h"
+#include "PTPLib/ChannelConfig.h"
 
 #include <string>
 #include <sstream>
