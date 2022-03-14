@@ -61,8 +61,7 @@ namespace partitionChannel {
             if (colorCode != Color::FG_DEFAULT)
                 out_stream << "\033[" << colorCode << "m";
             (out_stream << ... << items);
-            if (colorCode != Color::FG_DEFAULT)
-                out_stream << "\033[" << Color::FG_DEFAULT << "m";
+            out_stream << "\033[0m";
         }
 
         template<typename... T>
