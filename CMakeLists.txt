@@ -15,7 +15,7 @@ include(GNUInstallDirs)
 add_library(PTPLib INTERFACE)
 
 target_include_directories(PTPLib INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/PTPLib>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
