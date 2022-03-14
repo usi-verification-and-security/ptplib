@@ -6,7 +6,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#pragma once
+#ifndef PTPLIB_HEADER_HPP
+#define PTPLIB_HEADER_HPP
 
 #include "lib.h"
 
@@ -226,3 +227,4 @@ namespace partitionChannel::net {
     }
 }
 
+#endif // PTPLIB_HEADER_HPP
