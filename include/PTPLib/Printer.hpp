@@ -10,7 +10,7 @@
 
 #include "PTPLib/Timer.hpp"
 
-namespace partitionChannel {
+namespace PTPLib {
 
     namespace Color
     {
