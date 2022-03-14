@@ -8,7 +8,7 @@
 #ifndef PTPLIB_PRINTER_HPP
 #define PTPLIB_PRINTER_HPP
 
-#include "Timer.h"
+#include "PTPLib/Timer.hpp"
 
 namespace partitionChannel {
 
