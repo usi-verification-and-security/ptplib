@@ -14,15 +14,15 @@ namespace PTPLib
 {
     static struct
     {
-        std::string_view Partition = "partition";
-        std::string_view Stop = "stop";
-        std::string_view ClauseInjection = "inject";
-        std::string_view Incremental = "incremental";
-        std::string_view CnfClauses = "cnf-clauses";
-        std::string_view Cnflearnts = "cnf-learnts";
-        std::string_view Solve = "solve";
-        std::string_view Lemmas = "lemmas";
-        std::string_view Terminate = "terminate";
+        const std::string Partition = "partition";
+        const std::string Stop = "stop";
+        const std::string ClauseInjection = "inject";
+        const std::string Incremental = "incremental";
+        const std::string CnfClauses = "cnf-clauses";
+        const std::string Cnflearnts = "cnf-learnts";
+        const std::string Solve = "solve";
+        const std::string Lemmas = "lemmas";
+        const std::string Terminate = "terminate";
     } Command;
 
     struct Task
@@ -36,14 +36,8 @@ namespace PTPLib
 
     enum Threads
     {
-        Communication, ClausePull, ClausePush, MemCheck
+        Search, ClausePull, ClausePush, MemCheck
     };
-
-    enum Status
-    {
-        unknown, sat, unsat
-    };
-
 }
 
 #endif // PTPLIB_PARTITION_CONSTANT_HPP
