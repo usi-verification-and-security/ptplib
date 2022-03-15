@@ -17,7 +17,7 @@ private:
     const std::string msg;
 
 public:
-    explicit Exception(std::string_view message) :
+    explicit Exception(const std::string & message) :
             msg(message) {}
 
     explicit Exception(const char * file, unsigned line, const std::string & message) :
