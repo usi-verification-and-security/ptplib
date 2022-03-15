@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-namespace PartitionChannel
+namespace PTPLib
 {
     static struct
     {

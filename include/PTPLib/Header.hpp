@@ -20,7 +20,7 @@
 #include <sstream>
 
 
-namespace partitionChannel::net {
+namespace PTPLib::net {
     typedef std::string_view header_prefix;
     header_prefix Header::statistic = "statistic";
     header_prefix Header::parameter = "parameter";
@@ -174,7 +174,7 @@ namespace partitionChannel::net {
         return (uint8_t) (v.size() / 2);
     }
 
-    partitionChannel::Header Header::copy(const std::vector<std::string> & keys) const
+    PTPLib::Header Header::copy(const std::vector<std::string> & keys) const
     {
         auto header = Header();
         for (auto & key:keys) {
@@ -186,7 +186,7 @@ namespace partitionChannel::net {
         return header;
     }
 
-    partitionChannel::Header Header::copy(const header_prefix & prefix, const std::vector<std::string> & keys) const
+    PTPLib::Header Header::copy(const header_prefix & prefix, const std::vector<std::string> & keys) const
     {
         auto header = Header();
         for (auto & key:keys) {

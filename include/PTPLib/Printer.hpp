@@ -11,7 +11,7 @@
 #include "PTPLib/Timer.hpp"
 #include <mutex>
 
-namespace partitionChannel {
+namespace PTPLib {
 
     namespace Color
     {
