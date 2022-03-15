@@ -1,5 +1,5 @@
-# Partition Channel Library
-### Partition channel library contains:
+# Partition Tree Protocol Library
+### PTPLib contains:
 #### 1. A communication channel
  
    A memory model for thread-architecture that supports:
@@ -9,9 +9,9 @@
 #### 2. An async printer
    To output coloured text which can be used in multi-threading context. 
 
-A shared cross-thread object of partitionChannel::synced_stream, can be used as follow:
+A shared cross-thread object of PTPLib::synced_stream, can be used as follow:
    ```
-   partitionChannel::synced_stream synced_stream
+   PTPLib::synced_stream synced_stream
    synced_stream(std::clog);
    synced_stream.println(Color::FG_BrightCyan, "status:", status, ...);
    ```
@@ -22,7 +22,7 @@ to have a thread-safe coloured stream.
 #### 4. A manual time checker 
 Which can start, stop, accumulate and reset the time.
    ```
-   partitionChannel::StoppableWatch timer;
+   PTPLib::StoppableWatch timer;
    timer.start();
    timer.elapsed_time_milliseconds()
    ```
@@ -30,7 +30,7 @@ Which can start, stop, accumulate and reset the time.
 ####  5. An async time checker/printer 
 Which is triggered on contructor/destructor, automatically measures the time.
    ```
-   partitionChannel::PrintStopWatch timer("Stop Watch", synced_stream, Color::Code:: FG_BrightCyan );
+   PTPLib::PrintStopWatch timer("Stop Watch", synced_stream, Color::Code:: FG_BrightCyan );
    ```
    
 

@@ -5,10 +5,10 @@
 #include <PTPLib/Printer.hpp>
 
 int main() {
-    partitionChannel::synced_stream stream;
-    stream.print(partitionChannel::Color::FG_BrightYellow, "foo");
-    stream.println(partitionChannel::Color::FG_BrightCyan, "bar");
-    stream.print(partitionChannel::Color::BG_BrightCyan, "   ");
-    stream.println(partitionChannel::Color::BG_BrightYellow, "   ");
+    PTPLib::synced_stream stream;
+    stream.print(PTPLib::Color::FG_BrightYellow, "foo");
+    stream.println(PTPLib::Color::FG_BrightCyan, "bar");
+    stream.print(PTPLib::Color::BG_BrightCyan, "   ");
+    stream.println(PTPLib::Color::BG_BrightYellow, "   ");
     return 0;
 }

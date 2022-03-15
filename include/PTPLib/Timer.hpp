@@ -17,7 +17,7 @@
 #include <sys/resource.h>
 #include <cassert>
 
-namespace partitionChannel {
+namespace PTPLib {
 // A c++ wrapper for struct timeval
     class BTime {
         time_t tv_sec;
