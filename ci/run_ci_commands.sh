@@ -22,7 +22,7 @@ else
     make install
 fi
 
-cd ../tests/example/ && rm -rf build && mkdir -p build && cd build
+cd ../tests/printer_example/ && rm -rf build && mkdir -p build && cd build
 cmake \
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
     -DCMAKE_CXX_FLAGS="${FLAGS}" \
