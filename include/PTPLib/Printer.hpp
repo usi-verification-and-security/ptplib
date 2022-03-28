@@ -10,6 +10,7 @@
 
 #include "PTPLib/Timer.hpp"
 #include <mutex>
+#include <cstring>
 
 namespace PTPLib {
 
