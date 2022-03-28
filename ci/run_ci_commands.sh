@@ -22,6 +22,7 @@ else
     make install
 fi
 
+#printer example
 cd ../tests/printer_example/ && rm -rf build && mkdir -p build && cd build
 cmake \
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
@@ -31,3 +32,14 @@ cmake \
 make -j4
 
 ./PTP-Example
+
+#protocol example
+cd ../../protocol_example/ && rm -rf build && mkdir -p build && cd build
+cmake \
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+    -DCMAKE_CXX_FLAGS="${FLAGS}" \
+    ..
+
+make -j4
+
+./Protocol-Example 2 10
