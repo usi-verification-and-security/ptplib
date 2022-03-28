@@ -14,29 +14,42 @@ namespace PTPLib
 {
     static struct
     {
-        const std::string Partition = "partition";
-        const std::string Stop = "stop";
-        const std::string ClauseInjection = "inject";
-        const std::string Incremental = "incremental";
-        const std::string CnfClauses = "cnf-clauses";
-        const std::string Cnflearnts = "cnf-learnts";
-        const std::string Solve = "solve";
-        const std::string Lemmas = "lemmas";
-        const std::string Terminate = "terminate";
+        const std::string PARTITION = "partition";
+        const std::string STOP = "stop";
+        const std::string CLAUSEINJECTION = "inject";
+        const std::string INCREMENTAL = "incremental";
+        const std::string CNFCLAUSES = "cnf-clauses";
+        const std::string CNFLEARNTS = "cnf-learnts";
+        const std::string SOLVE = "solve";
+        const std::string LEMMAS = "lemmas";
+        const std::string TERMINATE = "terminate";
     } Command;
+
+    static struct
+    {
+        const std::string NODE = "node";
+        const std::string NODE_ = "node_";
+        const std::string COMMAND = "command";
+        const std::string QUERY = "query";
+        const std::string NAME = "name";
+        const std::string SEED = "seed";
+        const std::string SPLIT_TYPE = "split-type";
+        const std::string SPLIT_PREFERENCE = "split-preference";
+        const std::string PARTITIONS = "partitions";
+    } Param;
 
     struct Task
     {
         const enum {
-            incremental, resume, partition, stop
+            SOLVE, INCREMENTAL, RESUME, PARTITION, STOP
         } command;
 
-        std::string smtlib;
+        std::string SMTLIB;
     };
 
-    enum Threads
+    enum WORKER
     {
-        Search, ClausePull, ClausePush, MemCheck
+        COMMUNICATION, SOLVER, CLAUSEPULL, CLAUSEPUSH, MEMORYCHECK
     };
 }
 
