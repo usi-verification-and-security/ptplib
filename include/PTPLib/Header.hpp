@@ -9,7 +9,7 @@
 #ifndef PTPLIB_HEADER_HPP
 #define PTPLIB_HEADER_HPP
 
-#include "lib.hpp"
+#include <PTPLib/lib.hpp>
 
 #include <array>
 #include <iomanip>
@@ -162,8 +162,13 @@ namespace PTPLib::net {
         }
 
     public:
-        const header_prefix statistic = "parameter";;
-        const header_prefix parameter = "statistic";;
+        static const header_prefix statistic;
+        static const header_prefix parameter;
+
+        Header() {
+            const header_prefix parameter = "parameter";
+            const header_prefix statistic = "statistic";
+        };
 
         uint8_t level() const {
             std::string node;
@@ -195,12 +200,20 @@ namespace PTPLib::net {
             return header;
         }
 
-        const std::vector <std::string> keys(const header_prefix & prefix) const {
+        const std::vector <std::string> keys(const header_prefix & prefix ) const {
             std::vector <std::string> st;
             for (auto & pair:*this) {
                 if (pair.first.substr(0, prefix.size() + 1) == prefix + ".") {
                     st.push_back(pair.first.substr(prefix.size() + 1));
                 }
+            }
+            return st;
+        }
+
+        const std::vector <std::string> keys() const {
+            std::vector <std::string> st;
+            for (auto & pair:*this) {
+                st.push_back(pair.first);
             }
             return st;
         }
