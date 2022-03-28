@@ -66,6 +66,10 @@ namespace PTPLib {
             }
         }
 
+        inline std::uint_fast16_t elapsed_time_microseconds() {
+            return count_elapsed<std::chrono::microseconds>();
+        }
+
         inline std::uint_fast16_t elapsed_time_milliseconds() {
             return count_elapsed<std::chrono::milliseconds>();
         }
