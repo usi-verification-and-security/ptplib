@@ -84,7 +84,7 @@ namespace PTPLib {
 
     template<size_t lock_count, typename duration = std::chrono::nanoseconds,
             size_t deadlock_timeout = 100000, size_t spin_iterations = 100>
-                    
+
     class lock_timed_any {
         std::vector<std::shared_ptr<void>> locks_ptr_vec;
         bool success;

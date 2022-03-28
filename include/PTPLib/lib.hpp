@@ -9,8 +9,8 @@
 #ifndef PTPLIB_LIB_HPP
 #define PTPLIB_LIB_HPP
 
-#include "Exception.hpp"
-#include "PartitionConstant.hpp"
+#include "PTPLib/Exception.hpp"
+#include "PTPLib/PartitionConstant.hpp"
 
 #include <string>
 #include <sstream>
@@ -138,7 +138,7 @@ const std::string to_string<bool>(const bool & b)
 
 bool to_bool(const std::string & str)
 {
-    return (str =="true" or str =="TRUE" or str =="YES" or str =="yes") ? true : false;
+    return (str =="true" or str =="TRUE") ? true : false;
 }
 
 #endif // PTPLIB_LIB_HPP

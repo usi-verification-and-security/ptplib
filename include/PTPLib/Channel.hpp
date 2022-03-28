@@ -8,7 +8,7 @@
 #ifndef PTPLIB_CHANNEL_HPP
 #define PTPLIB_CHANNEL_HPP
 
-#include <PTPLib/Header.hpp>
+#include "PTPLib/Header.hpp"
 
 #include <vector>
 #include <mutex>

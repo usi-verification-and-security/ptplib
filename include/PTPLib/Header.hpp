@@ -9,7 +9,7 @@
 #ifndef PTPLIB_HEADER_HPP
 #define PTPLIB_HEADER_HPP
 
-#include <PTPLib/lib.hpp>
+#include "PTPLib/lib.hpp"
 
 #include <array>
 #include <iomanip>
@@ -173,7 +173,7 @@ namespace PTPLib::net {
         uint8_t level() const {
             std::string node;
             try {
-                node = this->at("node");
+                node = this->at(PTPLib::Param.NODE);
             } catch (std::out_of_range &) {
             }
             node % std::make_pair("[", "") % std::make_pair("]", "") % std::make_pair(" ", "");
@@ -235,6 +235,7 @@ namespace PTPLib::net {
             this->erase(prefix + "." + key);
         }
     };
+    
 }
 
 #endif // PTPLIB_HEADER_HPP
