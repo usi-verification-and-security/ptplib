@@ -1,14 +1,13 @@
+#include "SMTSolver.h"
+
 #include <iostream>
 #include <string>
-#include "SMTSolver.h"
-#include <stdlib.h>
+#include <cassert>
 #include <random>
 #include <mutex>
-#include <thread>
-
 
 bool SMTSolver::learnSomeClauses(std::vector<std::pair<std::string ,int>> & learned_clauses) {
-    int rand_number = SMTSolver::generate_rand(0, 1000);
+    int rand_number = SMTSolver::generate_rand(0, 2000);
     if (rand_number % 5 == 0)
         return false;
     for (int i = 0; i < rand_number ; ++i) {
@@ -29,10 +28,10 @@ SMTSolver::Result SMTSolver::do_solve() {
                        "[t SEARCH ] -> add learned clauses to channel buffer, Size : ",
                        toPublishClauses.size());
         channel.insert_learned_clause(toPublishClauses);
-        return random_n % 10 == 0 ? Result::UNSAT : Result::UNKNOWN;
+        return random_n % 25 == 0 ? Result::UNSAT : Result::UNKNOWN;
     }
 
-    return random_n % 15 == 0 ? Result::SAT : Result::UNKNOWN;
+    return random_n % 30 == 0 ? Result::SAT : Result::UNKNOWN;
 }
 
 void SMTSolver::search(const std::string & smt_lib) {
@@ -63,8 +62,10 @@ void SMTSolver::inject_clauses()
 }
 void SMTSolver::initialise_logic()
 {
+    timer.start();
     stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
-                   "[t COMMUNICATOR ] -> initialising the logic ");
+                   "[t COMMUNICATOR ] -> initialising the logic, time: ", timer.elapsed_time_milliseconds());
+    timer.reset();
 }
 
 void SMTSolver::do_partition(const std::string & node, const std::string & pn)

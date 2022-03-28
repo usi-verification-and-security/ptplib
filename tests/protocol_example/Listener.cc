@@ -131,7 +131,6 @@ void Listener::push_clause_worker(int seed, int min, int max)
             else if (not getChannel().empty())
             {
                 m_clauses = getChannel().extract_learned_clauses();
-                getChannel().clear_learned_clauses();
 
                 auto header = getChannel().get_current_header();
                 lk.unlock();
@@ -186,6 +185,7 @@ void Listener::pull_clause_worker(int seed, int min, int max)
 
 bool Listener::read_lemma(std::vector<std::pair<std::string, int>>  & lemmas, PTPLib::net::Header & header) {
 
+    assert(not header.at(PTPLib::Param.NODE).empty() and header.at(PTPLib::Param.NAME).empty());
     int rand_number = SMTSolver::generate_rand(100, 2000);
     std::this_thread::sleep_for(std::chrono::milliseconds (rand_number));
     if (rand_number % 3 == 0)
@@ -200,6 +200,7 @@ bool Listener::read_lemma(std::vector<std::pair<std::string, int>>  & lemmas, PT
 void Listener::write_lemma(std::map<std::string, std::vector<std::pair<std::string, int>>> const & m_clauses,
                            PTPLib::net::Header & header)
 {
+    assert(not header.at(PTPLib::Param.NODE).empty() and header.at(PTPLib::Param.NAME).empty());
     for ( const auto &toPushClause : m_clauses )
     {
         std::this_thread::sleep_for(std::chrono::milliseconds (m_clauses.size()));

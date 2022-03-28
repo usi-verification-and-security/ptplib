@@ -21,11 +21,11 @@ public:
 
     Communicator(Channel & ch, PTPLib::synced_stream & ss, const bool & ce)
     :
-        channel(ch),
-        stream(ss),
-        solver(ch, ss, timer, ce),
+        channel (ch),
+        solver  (ch, ss, timer, ce),
+        stream  (ss),
         color_enabled(ce),
-        th_pool(1) {}
+        th_pool (1) {}
 
     void solver_worker(const PTPLib::net::Header & header, const std::string & smt_lib);
 

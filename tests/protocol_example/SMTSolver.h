@@ -20,10 +20,10 @@ public:
     SMTSolver(Channel & ch, PTPLib::synced_stream & st, PTPLib::StoppableWatch & tm, const bool & ce)
         :
          channel (ch),
+         result (Result::UNKNOWN),
          stream  (st),
          timer   (tm),
-         color_enabled(ce),
-         result (Result::UNKNOWN) {}
+         color_enabled(ce) {}
 
     Result   getResult()  const    { return result; }
 

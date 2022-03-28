@@ -46,8 +46,8 @@ public:
     Channel()
     :
         requestStop         (false),
-        isStopping          (false),
         reset               (false),
+        isStopping          (false),
         clauseShareMode     (false),
         isFirstTime         (false),
         clauseLearnDuration (4000),

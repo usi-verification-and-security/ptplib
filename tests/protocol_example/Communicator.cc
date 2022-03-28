@@ -33,15 +33,16 @@ void Communicator::communicate_worker()
                            "[t COMMUNICATOR ] -> ", "updating the channel with ", event.first.at(PTPLib::Param.COMMAND));
             channel.getMutex().unlock();
             notify_event(event );
-            getChannel().clearShouldStop();
+
 
             channel.getMutex().lock();
             PTPLib::Task task = execute_event(event);
+            getChannel().clearShouldStop();
+            channel.getMutex().unlock();
             th_pool.push_task([this, event, task]
             {
                 solver_worker(event.first, task.SMTLIB + event.first.at(PTPLib::Param.QUERY));
             });
-            channel.getMutex().unlock();
         }
         else
             stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
@@ -73,11 +74,13 @@ PTPLib::Task Communicator::execute_event(const std::pair<PTPLib::net::Header, st
 
     else if (event.first.at(PTPLib::Param.COMMAND) == PTPLib::Command.STOP)
         return PTPLib::Task {
-                .command = PTPLib::Task::STOP
+                .command = PTPLib::Task::STOP,
+                .SMTLIB = event.second
         };
 
     return PTPLib::Task {
-            .command = PTPLib::Task::RESUME
+            .command = PTPLib::Task::RESUME,
+            .SMTLIB = event.second
     };
 }
 
