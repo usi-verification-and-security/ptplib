@@ -136,4 +136,9 @@ const std::string to_string<bool>(const bool & b)
     return b ? "true" : "false";
 }
 
+bool to_bool(const std::string & str)
+{
+    return (str =="true" or str =="TRUE" or str =="YES" or str =="yes") ? true : false;
+}
+
 #endif // PTPLIB_LIB_HPP
