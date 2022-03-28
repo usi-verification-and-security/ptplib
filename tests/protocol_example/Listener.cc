@@ -131,7 +131,6 @@ void Listener::push_clause_worker(int seed, int min, int max)
             else if (not getChannel().empty())
             {
                 m_clauses = getChannel().extract_learned_clauses();
-
                 auto header = getChannel().get_current_header();
                 lk.unlock();
 
@@ -148,7 +147,7 @@ void Listener::push_clause_worker(int seed, int min, int max)
 
 void Listener::pull_clause_worker(int seed, int min, int max)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds (1000));
+    std::this_thread::sleep_for(std::chrono::seconds (1));
     int pullDuration = min + ( seed % ( max - min + 1 ) );
     stream.println(color_enabled ? PTPLib::Color::FG_Black : PTPLib::Color::FG_DEFAULT,
                    "[t PULL -> timout : ", pullDuration," ms");
@@ -167,15 +166,18 @@ void Listener::pull_clause_worker(int seed, int min, int max)
             {
                 if (getChannel().shouldReset())
                     break;
-                std::scoped_lock<std::mutex> _lk(getChannel().getMutex());
                 stream.println(color_enabled ? PTPLib::Color::FG_Black : PTPLib::Color::FG_DEFAULT,
-                               "[t PULL ] -> pulled learned clauses copied to channel buffer, Size: ", lemmas.size());
-                channel.insert_pulled_clause(lemmas);
+                               "[t PULL ] -> pulled learned clauses copied to channel buffer, Size: ",
+                               lemmas.size());
+                {
+                    std::scoped_lock<std::mutex> _lk(getChannel().getMutex());
+                    channel.insert_pulled_clause(lemmas);
 
-                header[PTPLib::Param.COMMAND] = PTPLib::Command.CLAUSEINJECTION;
+                    header[PTPLib::Param.COMMAND] = PTPLib::Command.CLAUSEINJECTION;
+                    queue_event(std::make_pair(header, ""));
+                }
                 stream.println(color_enabled ? PTPLib::Color::FG_Black : PTPLib::Color::FG_DEFAULT,
-                               "[t PULL ] -> ", PTPLib::Command.CLAUSEINJECTION," is queued and notified" );
-                queue_event(std::make_pair(header, ""));
+                               "[t PULL ] -> ", PTPLib::Command.CLAUSEINJECTION, " is queued and notified");
             }
         }
         else

@@ -32,8 +32,8 @@ int main(int argc, char** argv) {
 
             std::srand(static_cast<std::uint_fast8_t>(solving_watch.elapsed_time_microseconds()));
 
-            listener.push_to_pool(PTPLib::WORKER::CLAUSEPUSH, std::rand(), 1000, 5000);
-            listener.push_to_pool(PTPLib::WORKER::CLAUSEPULL, std::rand(), 1000, 10000);
+            listener.push_to_pool(PTPLib::WORKER::CLAUSEPUSH, std::rand(), 1000, 2000);
+            listener.push_to_pool(PTPLib::WORKER::CLAUSEPULL, std::rand(), 1000, 4000);
         }
 
         int nCommands = SMTSolver::generate_rand(2,  atoi(argv[2]));

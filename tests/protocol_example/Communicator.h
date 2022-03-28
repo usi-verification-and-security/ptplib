@@ -25,7 +25,7 @@ public:
         solver  (ch, ss, timer, ce),
         stream  (ss),
         color_enabled(ce),
-        th_pool (1) {}
+        th_pool ("communicator_pool", 1) {}
 
     void solver_worker(const PTPLib::net::Header & header, const std::string & smt_lib);
 

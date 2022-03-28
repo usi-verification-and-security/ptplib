@@ -27,12 +27,13 @@ namespace PTPLib {
 
     class ThreadPool {
         typedef std::uint_fast32_t ui32;
-
+        std::string pool_name;
     public:
-        ThreadPool(const ui32 & _thread_count)
-                :
-                thread_count(_thread_count ? _thread_count : std::thread::hardware_concurrency()),
-                threads(new std::thread[_thread_count ? _thread_count : std::thread::hardware_concurrency()])
+        ThreadPool(std::string _pool_name = std::string(), const ui32 & _thread_count = std::thread::hardware_concurrency())
+        :
+            pool_name    (_pool_name),
+            thread_count (_thread_count),
+            threads      (new std::thread[_thread_count])
         {
            create_threads();
         }
@@ -41,6 +42,7 @@ namespace PTPLib {
             wait_for_tasks();
             running = false;
             destroy_threads();
+            std::cout << pool_name <<" destroyed!" << std::endl;
         }
 
         size_t get_tasks_queued() const {

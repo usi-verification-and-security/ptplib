@@ -23,7 +23,7 @@ public:
         communicator(channel, ss, ce),
         stream(ss),
         color_enabled(ce),
-        listener_pool(std::thread::hardware_concurrency() - 2) {}
+        listener_pool("listener_pool", std::thread::hardware_concurrency() - 2) {}
 
 
     void set_numberOf_Command(int inc, int nc) { instanceNum = inc; nCommands = nc; }
