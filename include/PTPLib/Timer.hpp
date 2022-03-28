@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2008 - 2012, Roberto Bruttomesso
  * Copyright (c) 2022, Antti Hyvarinen <antti.hyvarinen@gmail.com>
  * Copyright (c) 2022, Seyedmasoud Asadzadeh <seyedmasoud.asadzadeh@usi.ch>
  *
@@ -9,108 +8,11 @@
 #ifndef PTPLIB_TIMER_HPP
 #define PTPLIB_TIMER_HPP
 
-#include <string.h>
-#include <ostream>
+#include <string>
 #include <iostream>
-#include <sys/time.h>
 #include <chrono>
-#include <sys/resource.h>
-#include <cassert>
 
 namespace PTPLib {
-// A c++ wrapper for struct timeval
-    class BTime {
-        time_t tv_sec;
-        suseconds_t tv_usec;
-    public:
-        BTime() : tv_sec(0), tv_usec(0) {}
-
-        BTime(const struct timeval & tv) : tv_sec(tv.tv_sec), tv_usec(tv.tv_usec) {}
-
-        BTime(const BTime & from) : tv_sec(from.tv_sec), tv_usec(from.tv_usec) {}
-
-        void operator-=(const BTime & subst) {
-            tv_sec -= subst.tv_sec;
-            tv_usec -= subst.tv_usec;
-        }
-
-        BTime operator-(const BTime & subst) {
-            BTime out;
-            out.tv_sec = tv_sec - subst.tv_sec;
-            out.tv_usec = tv_usec - subst.tv_usec;
-            return out;
-        }
-
-        void operator=(const BTime & from) {
-            tv_sec = from.tv_sec;
-            tv_usec = from.tv_usec;
-        }
-
-        BTime & operator+=(const BTime & other) {
-            tv_sec += other.tv_sec;
-            tv_usec += other.tv_usec;
-            return *this;
-        }
-
-        double getTime() {
-            return tv_sec + tv_usec / (double) 1000000;
-        }
-    };
-
-    class OSMTTimeVal {
-        BTime usrtime;
-        BTime systime;
-    public:
-        OSMTTimeVal() {}
-
-        OSMTTimeVal(const BTime & usrtime, const BTime & systime) : usrtime(usrtime), systime(systime) {}
-
-        OSMTTimeVal(const struct rusage & res_usage) : usrtime(res_usage.ru_utime), systime(res_usage.ru_stime) {}
-
-        void operator-=(const OSMTTimeVal & subst) {
-            usrtime -= subst.usrtime;
-            systime -= subst.systime;
-        }
-
-        OSMTTimeVal operator-(const OSMTTimeVal & subst) {
-            OSMTTimeVal out;
-            out.usrtime = usrtime - subst.usrtime;
-            out.systime = systime - subst.systime;
-            return out;
-        }
-
-        OSMTTimeVal & operator+=(const OSMTTimeVal & from) {
-            usrtime += from.usrtime;
-            systime += from.systime;
-            return *this;
-        }
-
-        double getTime() {
-            return usrtime.getTime() + systime.getTime();
-        }
-    };
-
-    class StopWatch {
-    protected:
-        struct rusage tmp_rusage;
-        OSMTTimeVal time_start;
-        OSMTTimeVal & timer;
-    public:
-        StopWatch(OSMTTimeVal & timer)
-                : timer(timer) {
-            if (getrusage(RUSAGE_SELF, &tmp_rusage) == 0) {
-                time_start = OSMTTimeVal(tmp_rusage);
-            } else
-                assert(false);
-        }
-
-        ~StopWatch() {
-            if (getrusage(RUSAGE_SELF, &tmp_rusage) == 0) {
-                timer += OSMTTimeVal(tmp_rusage) - time_start;
-            } else
-                assert(false);
-        }
-    };
 
 // A c++ wrapper for manual time checking
     class StoppableWatch {
@@ -126,9 +28,9 @@ namespace PTPLib {
 
         StoppableWatch & operator=(StoppableWatch && other) = default;
 
-        inline StoppableWatch(bool start = false) :
+        inline StoppableWatch( bool start = false) :
                 started_(false), paused_(false),
-                reference_(std::chrono::steady_clock::now()),
+                reference_( std::chrono::steady_clock::now()),
                 accumulated_(std::chrono::duration<long double>(0)) {
             if (start)
                 this->start();
@@ -148,7 +50,7 @@ namespace PTPLib {
 
         inline void stop() {
             if (started_ && not paused_) {
-                std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+                auto now = std::chrono::steady_clock::now();
                 accumulated_ = accumulated_ +
                                std::chrono::duration_cast<std::chrono::duration<long double> >(now - reference_);
                 paused_ = true;
