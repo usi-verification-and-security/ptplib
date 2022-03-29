@@ -14,33 +14,37 @@ class Listener {
     bool color_enabled;
     int nCommands;
     int instanceNum;
-
+    double waiting_duration;
 
 public:
     PTPLib::ThreadPool listener_pool;
-    Listener(PTPLib::synced_stream & ss, const bool & ce)
+    Listener(PTPLib::synced_stream & ss, const bool & ce, double wd)
         :
-        communicator(channel, ss, ce),
+        communicator(channel, ss, ce, wd),
         stream(ss),
         color_enabled(ce),
-        listener_pool("listener_pool", std::thread::hardware_concurrency() - 2) {}
+        waiting_duration(wd),
+        listener_pool("listener_pool", std::thread::hardware_concurrency() - 2)
+    {}
 
-
-    void set_numberOf_Command(int inc, int nc) { instanceNum = inc; nCommands = nc; }
+    void set_eventGen_stat(int inc, int nc) {
+        instanceNum = inc;
+        nCommands = nc;
+    }
 
     void notify_reset();
 
-    void worker(PTPLib::WORKER tname, int seed, int td_min, int td_max);
+    void worker(PTPLib::WORKER tname, double seed, double td_min, double td_max);
 
-    void push_to_pool(PTPLib::WORKER tname, int seed = 0, int td_min = 0, int td_max = 0);
+    void push_to_pool(PTPLib::WORKER tname, double seed = 0, double td_min = 0, double td_max = 0);
 
     std::pair<PTPLib::net::Header, std::string> read_event(int counter, int solve_time);
 
     void queue_event(std::pair<PTPLib::net::Header, std::string> && header_payload);
 
-    void pull_clause_worker(int seed, int n_min, int n_max);
+    void pull_clause_worker(double seed, double n_min, double n_max);
 
-    void push_clause_worker(int seed, int n_min, int n_max);
+    void push_clause_worker(double seed, double n_min, double n_max);
 
     bool read_lemma(std::vector<std::pair<std::string, int>> & lemmas, PTPLib::net::Header & header);
 

@@ -7,40 +7,46 @@
 
 int main(int argc, char** argv) {
 
-    bool color_enabled;
+    bool color_enabled = true;
+    PTPLib::synced_stream stream_errr(std::cerr);
     if (argc < 3) {
-        std::cout << "Usage: " << argv[0] << " <max number of instances> <max number of events> <color enabled=default>" << std::endl;
+        stream_errr.println(PTPLib::Color::FG_BrightBlue, "Usage: " , argv[0]
+         , "<max number of instances> <max number of events> <waiting_duration=optional>");
         return 1;
-    } else color_enabled = argv[3] == NULL ? true : ::to_bool(argv[3]);
+    }
 
     PTPLib::synced_stream stream (std::clog);
     PTPLib::StoppableWatch solving_watch;
 
 
-    int number_instances = SMTSolver::generate_rand(1, atoi(argv[1]));
+    int number_instances = atoi(argv[1]) ;//SMTSolver::generate_rand(1, atoi(argv[1]));
     stream.println(color_enabled ? PTPLib::Color::FG_Red : PTPLib::Color::FG_DEFAULT,
-                   "-------------------------------- Total Number of Instances: ", number_instances," ---------------------------------- ");
+                   "<<---------------------->> Total Number of Instances: ", number_instances," <<------------------------>> ");
 
-    Listener listener(stream, color_enabled);
+    double waiting_duration = (argv[3] == NULL) ? 0 : std::stod(argv[3]);
+    Listener listener(stream, color_enabled, waiting_duration);
     int instanceNum = 0;
     while (number_instances != 0)
     {
         solving_watch.start();
         {
             listener.push_to_pool(PTPLib::WORKER::MEMORYCHECK);
-            listener.push_to_pool(PTPLib::WORKER::COMMUNICATION);
+            listener.push_to_pool(PTPLib::WORKER::COMMUNICATION, waiting_duration);
 
             std::srand(static_cast<std::uint_fast8_t>(solving_watch.elapsed_time_microseconds()));
 
-            listener.push_to_pool(PTPLib::WORKER::CLAUSEPUSH, std::rand(), 1000, 2000);
-            listener.push_to_pool(PTPLib::WORKER::CLAUSEPULL, std::rand(), 1000, 4000);
+            listener.push_to_pool(PTPLib::WORKER::CLAUSEPUSH, (waiting_duration ? waiting_duration : std::rand()), 1000, 2000);
+            listener.push_to_pool(PTPLib::WORKER::CLAUSEPULL, (waiting_duration ? waiting_duration : std::rand()), 2000, 4000);
         }
 
-        int nCommands = SMTSolver::generate_rand(2,  atoi(argv[2]));
-        listener.set_numberOf_Command(++instanceNum, nCommands);
+        int nCommands = atoi(argv[2]);//SMTSolver::generate_rand(2,  atoi(argv[2]));
+
+
+        listener.set_eventGen_stat(++instanceNum, nCommands);
 
         stream.println( color_enabled ? PTPLib::Color::FG_Red : PTPLib::Color::FG_DEFAULT,
-                        "************************* Instance: ", instanceNum," ( Number of Commands: ", nCommands, ") **********************");
+                        "<********************** Instance: ", instanceNum,
+                        " ( Number of Commands: ", nCommands, ") **********************>");
         int command_counter = 1;
         bool reset = false;
 

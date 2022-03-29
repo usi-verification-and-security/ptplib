@@ -12,7 +12,7 @@ include(FetchContent)
 FetchContent_Declare(
         PTPLib
         GIT_REPOSITORY ${PTPLibRepo}
-        GIT_TAG master
+        GIT_TAG protocol_example
 )
 
 FetchContent_MakeAvailable(PTPLib)

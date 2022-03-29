@@ -15,15 +15,18 @@ private:
     PTPLib::synced_stream & stream;
     PTPLib::StoppableWatch & timer;
     bool color_enabled;
+    double waiting_duration;
 
 public:
-    SMTSolver(Channel & ch, PTPLib::synced_stream & st, PTPLib::StoppableWatch & tm, const bool & ce)
-        :
-         channel (ch),
-         result (Result::UNKNOWN),
-         stream  (st),
-         timer   (tm),
-         color_enabled(ce) {}
+    SMTSolver(Channel & ch, PTPLib::synced_stream & st, PTPLib::StoppableWatch & tm, const bool & ce, double wd )
+    :
+            channel (ch),
+            result (Result::UNKNOWN),
+            stream  (st),
+            timer   (tm),
+            color_enabled(ce),
+            waiting_duration(wd)
+    {}
 
     Result   getResult()  const    { return result; }
 

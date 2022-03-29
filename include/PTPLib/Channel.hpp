@@ -104,11 +104,13 @@ public:
         return tmp_p;
     }
 
+    PTPLib::net::Header & front_queries()  { return queries.front().first;}
+
     void push_back_query(std::pair<PTPLib::net::Header, std::string> && hd) { queries.push(std::move(hd)); }
 
     void set_current_header(PTPLib::net::Header hd) { current_header = hd.copy(hd.keys()); }
 
-    PTPLib::net::Header & get_current_header()  { return current_header; }
+    PTPLib::net::Header  get_current_header()  { return current_header; }
 
     size_t size() const { return m_learned_clauses->size(); }
 

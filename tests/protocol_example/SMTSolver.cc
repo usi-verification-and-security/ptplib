@@ -7,7 +7,7 @@
 #include <mutex>
 
 bool SMTSolver::learnSomeClauses(std::vector<std::pair<std::string ,int>> & learned_clauses) {
-    int rand_number = SMTSolver::generate_rand(0, 2000);
+    int rand_number = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(0, 2000);
     if (rand_number % 5 == 0)
         return false;
     for (int i = 0; i < rand_number ; ++i) {
@@ -18,7 +18,7 @@ bool SMTSolver::learnSomeClauses(std::vector<std::pair<std::string ,int>> & lear
 
 SMTSolver::Result SMTSolver::do_solve() {
 
-    int random_n = SMTSolver::generate_rand(1000, 2000);
+    int random_n = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(1000, 2000);
     std::this_thread::sleep_for(std::chrono::milliseconds (random_n));
     std::vector<std::pair<std::string ,int>>  toPublishClauses;
     if (learnSomeClauses(toPublishClauses))
@@ -58,7 +58,7 @@ void SMTSolver::inject_clauses(std::map<std::string, std::vector<std::pair<std::
     stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
                    "[t COMMUNICATOR ] -> inject pulled clause ");
     for (auto &clauses : pulled_clauses) {
-        std::this_thread::sleep_for(std::chrono::milliseconds (clauses.second.size()));
+        std::this_thread::sleep_for(std::chrono::milliseconds (int(waiting_duration ? waiting_duration * (100) : clauses.second.size())));
     }
 }
 void SMTSolver::initialise_logic()
@@ -71,8 +71,9 @@ void SMTSolver::initialise_logic()
 
 void SMTSolver::do_partition(const std::string & node, const std::string & pn)
 {
-    stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
-                   "[t COMMUNICATOR ] -> doing patition at ", node, " --- partitions: ",pn);
+    std::string str = "[t COMMUNICATOR ] -> doing partition at "+ node + " --- partitions: "+ pn;
+    PTPLib::PrintStopWatch psw(str, stream,
+                               color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT);
 }
 
 int SMTSolver::generate_rand(int min, int max)

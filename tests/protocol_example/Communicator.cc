@@ -31,23 +31,29 @@ void Communicator::communicate_worker()
         {
             auto event = getChannel().pop_front_query();
             stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
-                           "[t COMMUNICATOR ] -> ", "updating the channel with ", event.first.at(PTPLib::Param.COMMAND), " and waiting...");
+               "[t COMMUNICATOR ] -> ", "updating the channel with ", event.first.at(PTPLib::Param.COMMAND), " and waiting");
             channel.getMutex().unlock();
 
-            notify_and_wait(event );
+            setStop(event);
+            th_pool.wait_for_tasks();
 
-            bool resume = true;
+            bool should_resume;
             {
                 std::scoped_lock<std::mutex> slk(channel.getMutex());
-                resume = execute_event(event);
-                getChannel().clearShouldStop();
+                if (not channel.isEmpty_query() and channel.front_queries().at(PTPLib::Param.COMMAND) == PTPLib::Command.STOP)
+                    should_resume = false;
+                else
+                    should_resume = execute_event(event);
             }
-            if (resume) {
+            if (should_resume) {
+                getChannel().clearShouldStop();
                 th_pool.push_task([this, event]
                 {
                     solver_worker(event.first, event.second + event.first.at(PTPLib::Param.QUERY));
                 });
             }
+
+
         }
 
         else if (channel.shouldReset())
@@ -83,10 +89,8 @@ bool Communicator::execute_event(const std::pair<PTPLib::net::Header, std::strin
 }
 
 
-void Communicator::notify_and_wait(std::pair<PTPLib::net::Header, std::string> & header_payload)
+void Communicator::setStop(std::pair<PTPLib::net::Header, std::string> & header_payload)
 {
-    if (header_payload.first.at(PTPLib::Param.COMMAND) != PTPLib::Command.SOLVE) {
+    if (header_payload.first.at(PTPLib::Param.COMMAND) != PTPLib::Command.SOLVE)
             channel.setShouldStop();
-            th_pool.wait_for_tasks();
-    }
 }
