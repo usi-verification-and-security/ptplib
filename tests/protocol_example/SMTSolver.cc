@@ -34,8 +34,9 @@ SMTSolver::Result SMTSolver::do_solve() {
     return random_n % 30 == 0 ? Result::SAT : Result::UNKNOWN;
 }
 
-void SMTSolver::search(const std::string & smt_lib) {
+void SMTSolver::search(std::string & smt_lib) {
     assert(not smt_lib.empty());
+    smt_lib.clear();
     result = Result::UNKNOWN;
     while (result == Result::UNKNOWN and not channel.shouldStop())
     {
@@ -52,11 +53,11 @@ void SMTSolver::search(const std::string & smt_lib) {
                    "[t SEARCH ] -> solver exited with ", SMTSolver::resultToString(result));
 }
 
-void SMTSolver::inject_clauses()
+void SMTSolver::inject_clauses(std::map<std::string, std::vector<std::pair<std::string, int>>> & pulled_clauses)
 {
     stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
                    "[t COMMUNICATOR ] -> inject pulled clause ");
-    for ( auto &clauses : channel.extract_pulled_clauses() ) {
+    for (auto &clauses : pulled_clauses) {
         std::this_thread::sleep_for(std::chrono::milliseconds (clauses.second.size()));
     }
 }
@@ -79,7 +80,6 @@ int SMTSolver::generate_rand(int min, int max)
     std::uniform_int_distribution<int> un_dist(min, max);
     std::random_device rd;
     return un_dist(rd);
-
 }
 
 std::string SMTSolver::resultToString(SMTSolver::Result res) {

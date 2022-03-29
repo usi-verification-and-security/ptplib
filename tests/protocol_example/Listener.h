@@ -44,7 +44,7 @@ public:
 
     bool read_lemma(std::vector<std::pair<std::string, int>> & lemmas, PTPLib::net::Header & header);
 
-    void write_lemma(std::map<std::string, std::vector<std::pair<std::string, int>>> const & lemmas, PTPLib::net::Header & header);
+    void write_lemma(std::unique_ptr<std::map<std::string, std::vector<std::pair<std::string, int>>>> const & lemmas, PTPLib::net::Header & header);
 
     void mem_check(const std::string & max_memory);
 

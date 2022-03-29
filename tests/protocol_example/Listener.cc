@@ -76,7 +76,7 @@ std::pair<PTPLib::net::Header, std::string> Listener::read_event(int counter, in
     std::string payload;
     int rDuration = 0;
     if (counter > 1)
-        rDuration = SMTSolver::generate_rand(1,10000);
+        rDuration = SMTSolver::generate_rand(0,5000);
 
     std::this_thread::sleep_for(std::chrono::milliseconds (rDuration));
 
@@ -89,7 +89,7 @@ std::pair<PTPLib::net::Header, std::string> Listener::read_event(int counter, in
         return std::make_pair(header, payload);
     }
     else if (counter == nCommands) {
-        std::this_thread::sleep_for(std::chrono::seconds ((nCommands * 10) - time_passed));
+        std::this_thread::sleep_for(std::chrono::seconds ((nCommands * 5) - time_passed));
         header.emplace(PTPLib::Param.COMMAND, PTPLib::Command.STOP);
         return std::make_pair(header, payload);
     }
@@ -119,7 +119,7 @@ void Listener::push_clause_worker(int seed, int min, int max)
     stream.println(color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT,
                    "[t PUSH -> timout : ", pushDuration," ms");
     std::chrono::duration<double> wakeupAt = std::chrono::milliseconds (pushDuration);
-    std::map<std::string, std::vector<std::pair<std::string, int>>> m_clauses;
+    std::unique_ptr<std::map<std::string, std::vector<std::pair<std::string, int>>>> m_clauses;
     while (not getChannel().shouldReset()) {
         PTPLib::PrintStopWatch psw("[t PUSH ] -> wait and write duration: ", stream, PTPLib::Color::Code::FG_Blue);
         std::unique_lock<std::mutex> lk(getChannel().getMutex());
@@ -130,12 +130,12 @@ void Listener::push_clause_worker(int seed, int min, int max)
 
             else if (not getChannel().empty())
             {
-                m_clauses = getChannel().extract_learned_clauses();
+                m_clauses = getChannel().swap_learned_clauses();
                 auto header = getChannel().get_current_header();
                 lk.unlock();
 
                 write_lemma(m_clauses, header);
-                m_clauses.clear();
+                m_clauses->clear();
             }
             else stream.println(color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT,
                                 "[t PUSH ] -> Channel empty!");
@@ -187,7 +187,7 @@ void Listener::pull_clause_worker(int seed, int min, int max)
 
 bool Listener::read_lemma(std::vector<std::pair<std::string, int>>  & lemmas, PTPLib::net::Header & header) {
 
-    assert(not header.at(PTPLib::Param.NODE).empty() and header.at(PTPLib::Param.NAME).empty());
+    assert(not (header.at(PTPLib::Param.NODE).empty() and header.at(PTPLib::Param.NAME).empty()));
     int rand_number = SMTSolver::generate_rand(100, 2000);
     std::this_thread::sleep_for(std::chrono::milliseconds (rand_number));
     if (rand_number % 3 == 0)
@@ -196,17 +196,19 @@ bool Listener::read_lemma(std::vector<std::pair<std::string, int>>  & lemmas, PT
         std::string str = (i%2 == 0 ? "true" : "false");
         lemmas.emplace_back(std::make_pair("assert(" + str + ")", i % 3));
     }
+    header.at(PTPLib::Param.COMMAND);
     return not lemmas.empty();
 }
 
-void Listener::write_lemma(std::map<std::string, std::vector<std::pair<std::string, int>>> const & m_clauses,
+void Listener::write_lemma(std::unique_ptr<std::map<std::string, std::vector<std::pair<std::string, int>>>> const & m_clauses,
                            PTPLib::net::Header & header)
 {
-    assert(not header.at(PTPLib::Param.NODE).empty() and header.at(PTPLib::Param.NAME).empty());
-    for ( const auto &toPushClause : m_clauses )
+    assert(not (header.at(PTPLib::Param.NODE).empty() and header.at(PTPLib::Param.NAME).empty()));
+    for (const auto &toPushClause : *m_clauses)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds (m_clauses.size()));
+        std::this_thread::sleep_for(std::chrono::milliseconds (m_clauses->size()));
         stream.println(color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT,
                        "[t PUSH ] -> push learned clauses to Cloud Clause Size: ", toPushClause.second.size());
     }
+    header.at(PTPLib::Param.COMMAND);
 }

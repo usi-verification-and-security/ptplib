@@ -67,6 +67,7 @@ int main(int argc, char** argv) {
         listener.notify_reset();
         listener.listener_pool.wait_for_tasks();
         listener.getChannel().resetChannel();
+
         solving_watch.reset();
         number_instances--;
     }

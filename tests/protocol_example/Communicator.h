@@ -27,11 +27,11 @@ public:
         color_enabled(ce),
         th_pool ("communicator_pool", 1) {}
 
-    void solver_worker(const PTPLib::net::Header & header, const std::string & smt_lib);
+    void solver_worker(const PTPLib::net::Header & header, std::string smt_lib);
 
-    PTPLib::Task execute_event(const std::pair<PTPLib::net::Header, std::string> & event);
+    bool execute_event(const std::pair<PTPLib::net::Header, std::string> & event);
 
-    void notify_event(std::pair<PTPLib::net::Header, std::string> & header);
+    void notify_and_wait(std::pair<PTPLib::net::Header, std::string> & header);
 
     void communicate_worker();
 

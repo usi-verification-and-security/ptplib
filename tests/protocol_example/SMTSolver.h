@@ -31,9 +31,9 @@ public:
 
     static int generate_rand(int min, int max);
 
-    void search(const std::string & smt_lib);
+    void search(std::string & smt_lib);
 
-    void inject_clauses();
+    void inject_clauses(std::map<std::string, std::vector<std::pair<std::string, int>>> & pulled_clauses);
 
     void initialise_logic();
 
