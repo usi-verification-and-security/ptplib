@@ -31,8 +31,8 @@ class Channel {
     PTPLib::net::Header current_header;
 
     typedef std::map<std::string, std::vector<std::pair<std::string, int>>> m_str_vec_t;
-    m_str_vec_t m_learned_clauses;
-    m_str_vec_t m_pulled_clauses;
+    std::unique_ptr<m_str_vec_t> m_learned_clauses;
+    std::unique_ptr<m_str_vec_t> m_pulled_clauses;
 
     std::atomic_bool requestStop;
     std::atomic_bool reset;
@@ -52,41 +52,44 @@ public:
         isFirstTime         (false),
         clauseLearnDuration (4000),
         apiMode             (false)
-    {}
+    {
+        m_learned_clauses = std::make_unique<m_str_vec_t>();
+        m_pulled_clauses = std::make_unique<m_str_vec_t>();
+    }
 
     std::mutex & getMutex() { return mutex; }
 
-    void insert_learned_clause(std::vector<std::pair<std::string, int>> & toPublishTerms) {
-        m_learned_clauses[get_current_header().at(PTPLib::Param.NODE)].insert
+    void insert_learned_clause(std::vector<std::pair<std::string, int>> & toPublish_clauses) {
+        (*m_learned_clauses)[get_current_header().at(PTPLib::Param.NODE)].insert
         (
-                std::end(m_learned_clauses[get_current_header().at(PTPLib::Param.NODE)]),
-                std::begin(toPublishTerms), std::end(toPublishTerms)
+                std::end((*m_learned_clauses)[get_current_header().at(PTPLib::Param.NODE)]),
+                std::begin(toPublish_clauses), std::end(toPublish_clauses)
         );
     }
 
-    void insert_pulled_clause(std::vector<std::pair<std::string, int>> & toPublishTerms) {
-        m_pulled_clauses[get_current_header().at(PTPLib::Param.NODE)].insert
+    void insert_pulled_clause(std::vector<std::pair<std::string, int>> & toInject_clauses) {
+        (*m_pulled_clauses)[get_current_header().at(PTPLib::Param.NODE)].insert
         (
-                std::end(m_pulled_clauses[get_current_header().at(PTPLib::Param.NODE)]),
-                std::begin(toPublishTerms), std::end(toPublishTerms)
+                std::end((*m_pulled_clauses)[get_current_header().at(PTPLib::Param.NODE)]),
+                std::begin(toInject_clauses), std::end(toInject_clauses)
         );
     }
 
-    m_str_vec_t extract_learned_clauses() {
-        m_str_vec_t tmp_m(std::move(m_learned_clauses));
-        m_learned_clauses.clear();
-        return tmp_m;
+    std::unique_ptr<m_str_vec_t> swap_learned_clauses() {
+        auto out = std::make_unique<m_str_vec_t>();
+        std::swap(out, m_learned_clauses);
+        return out;
     };
 
-    m_str_vec_t extract_pulled_clauses() {
-        m_str_vec_t tmp_m(std::move(m_pulled_clauses));
-        m_pulled_clauses.clear();
-        return tmp_m;
+    std::unique_ptr<m_str_vec_t> swap_pulled_clauses() {
+        auto out = std::make_unique<m_str_vec_t>();
+        std::swap(out, m_pulled_clauses);
+        return out;
     };
 
     void clear_queries() {
         q_pair_header_str empty_q;
-        std::swap( get_queris(), empty_q );
+        std::swap(get_queris(), empty_q);
     }
 
     size_t size_query() const { return queries.size(); }
@@ -96,9 +99,9 @@ public:
     q_pair_header_str & get_queris() { return queries; }
 
     std::pair<PTPLib::net::Header, std::string> pop_front_query() {
-        std::pair<PTPLib::net::Header, std::string> tmp_q(std::move(queries.front()));
+        std::pair<PTPLib::net::Header, std::string> tmp_p(std::move(queries.front()));
         queries.pop();
-        return tmp_q;
+        return tmp_p;
     }
 
     void push_back_query(std::pair<PTPLib::net::Header, std::string> && hd) { queries.push(std::move(hd)); }
@@ -107,25 +110,25 @@ public:
 
     PTPLib::net::Header & get_current_header()  { return current_header; }
 
-    size_t size() const { return m_learned_clauses.size(); }
+    size_t size() const { return m_learned_clauses->size(); }
 
-    auto cbegin() const { return m_learned_clauses.cbegin(); }
+    auto cbegin() const { return m_learned_clauses->cbegin(); }
 
-    auto cend() const { return m_learned_clauses.cend(); }
+    auto cend() const { return m_learned_clauses->cend(); }
 
-    auto begin() const { return m_learned_clauses.begin(); }
+    auto begin() const { return m_learned_clauses->begin(); }
 
-    auto end() const { return m_learned_clauses.end(); }
+    auto end() const { return m_learned_clauses->end(); }
 
     void notify_one() { cv.notify_one(); }
 
     void notify_all() { cv.notify_all(); }
 
-    void clear_learned_clauses() { m_learned_clauses.clear(); }
+    void clear_learned_clauses() { m_learned_clauses->clear(); }
 
-    void clear_pulled_clauses() { m_pulled_clauses.clear(); }
+    void clear_pulled_clauses() { m_pulled_clauses->clear(); }
 
-    bool empty() const { return m_learned_clauses.empty(); }
+    bool empty() const { return (m_learned_clauses ?  m_learned_clauses->empty() : false); }
 
     bool shouldReset() const { return reset; }
 
@@ -178,8 +181,8 @@ public:
     }
 
     void resetChannel() {
-        clear_pulled_clauses();
-        clear_learned_clauses();
+//        clear_pulled_clauses();
+//        clear_learned_clauses();
         clearShouldStop();
         clearReset();
         clearClauseShareMode();
