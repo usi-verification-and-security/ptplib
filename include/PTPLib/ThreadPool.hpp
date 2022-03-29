@@ -187,7 +187,7 @@ namespace PTPLib {
 
         std::atomic<bool> paused = false;
 
-        ui32 sleep_duration = 1000;
+        ui32 sleep_duration = 100;
 
     private:
         void create_threads() {
