@@ -79,28 +79,21 @@ namespace PTPLib {
 
     class PrintStopWatch {
     protected:
-        char * name;
+        std::string name;
         StoppableWatch timer;
         synced_stream & ss;
         Color::Code colorCode;
 
     public:
-        PrintStopWatch(const char * _name, synced_stream & _ss, Color::Code cc = Color::Code::FG_DEFAULT)
-                : ss(_ss), colorCode(cc) {
-            timer.start();
-            name = (char *) malloc(strlen(_name) + 1);
-            strcpy(name, _name);
-        }
 
-        PrintStopWatch(std::string & _name, synced_stream & _ss, Color::Code cc = Color::Code::FG_DEFAULT)
+        PrintStopWatch(const std::string & _name, synced_stream & _ss, Color::Code cc = Color::Code::FG_DEFAULT)
                 : ss(_ss), colorCode(cc) {
             timer.start();
-            strcpy(name, _name.c_str());
+            name = _name;
         }
 
         ~PrintStopWatch() {
             ss.println(colorCode, ";", name, " ", timer.elapsed_time_milliseconds());
-            free(name);
         }
     };
 }
