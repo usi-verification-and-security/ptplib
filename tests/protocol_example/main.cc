@@ -11,13 +11,15 @@ int main(int argc, char** argv) {
     PTPLib::synced_stream stream_errr(std::cerr);
     if (argc < 3) {
         stream_errr.println(PTPLib::Color::FG_BrightBlue, "Usage: " , argv[0]
-         , "<max number of instances> <max number of events> <waiting_duration=optional>");
+         , "<max number of instances> <max number of events> <waiting_duration=optional> <seed=optional>");
         return 1;
     }
 
     PTPLib::synced_stream stream (std::clog);
     PTPLib::StoppableWatch solving_watch;
-
+    solving_watch.start();
+    std::srand((argv[3] == NULL) ? static_cast<std::uint_fast8_t>(solving_watch.elapsed_time_microseconds()) : atoi(argv[3]));
+    solving_watch.stop();
 
     int number_instances = atoi(argv[1]) ;//SMTSolver::generate_rand(1, atoi(argv[1]));
     stream.println(color_enabled ? PTPLib::Color::FG_Red : PTPLib::Color::FG_DEFAULT,
@@ -31,9 +33,7 @@ int main(int argc, char** argv) {
         solving_watch.start();
         {
             listener.push_to_pool(PTPLib::WORKER::MEMORYCHECK);
-            listener.push_to_pool(PTPLib::WORKER::COMMUNICATION, waiting_duration);
-
-            std::srand(static_cast<std::uint_fast8_t>(solving_watch.elapsed_time_microseconds()));
+            listener.push_to_pool(PTPLib::WORKER::COMMUNICATION);
 
             listener.push_to_pool(PTPLib::WORKER::CLAUSEPUSH, (waiting_duration ? waiting_duration : std::rand()), 1000, 2000);
             listener.push_to_pool(PTPLib::WORKER::CLAUSEPULL, (waiting_duration ? waiting_duration : std::rand()), 2000, 4000);
@@ -58,22 +58,24 @@ int main(int argc, char** argv) {
             stream.println(color_enabled ? PTPLib::Color::FG_Red : PTPLib::Color::FG_DEFAULT,
                            "[t LISTENER ] -> ", header_payload.first.at(PTPLib::Param.COMMAND)," is received and notified" );
 
-            std::unique_lock<std::mutex> _lk(listener.getChannel().getMutex());
-            if (header_payload.first[PTPLib::Param.COMMAND] == PTPLib::Command.STOP)
             {
-                reset = true;
-                listener.getChannel().clear_queries();
+                std::scoped_lock<std::mutex> _lk(listener.getChannel().getMutex());
+                if (header_payload.first[PTPLib::Param.COMMAND] == PTPLib::Command.STOP) {
+                    reset = true;
+                    listener.getChannel().clear_queries();
+                }
+                listener.queue_event(std::move(header_payload));
             }
-            listener.queue_event(std::move(header_payload));
-            _lk.unlock();
             if (reset)
                 break;
             command_counter++;
         }
         listener.notify_reset();
-        listener.listener_pool.wait_for_tasks();
-        listener.getChannel().resetChannel();
-
+        listener.getPool().wait_for_tasks();
+        {
+            std::scoped_lock<std::mutex> _lk(listener.getChannel().getMutex());
+            listener.getChannel().resetChannel();
+        }
         solving_watch.reset();
         number_instances--;
     }

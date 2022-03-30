@@ -8,8 +8,9 @@
 
 bool SMTSolver::learnSomeClauses(std::vector<std::pair<std::string ,int>> & learned_clauses) {
     int rand_number = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(0, 2000);
-    if (rand_number % 5 == 0)
+    if (std::rand() < RAND_MAX/100)
         return false;
+
     for (int i = 0; i < rand_number ; ++i) {
         learned_clauses.emplace_back(std::make_pair("assert("+to_string(i)+")",i % 10));
     }
@@ -28,15 +29,16 @@ SMTSolver::Result SMTSolver::do_solve() {
                        "[t SEARCH ] -> add learned clauses to channel buffer, Size : ",
                        toPublishClauses.size());
         channel.insert_learned_clause(toPublishClauses);
-        return random_n % 25 == 0 ? Result::UNSAT : Result::UNKNOWN;
+        return Result::UNKNOWN;
     }
-
-    return random_n % 30 == 0 ? Result::SAT : Result::UNKNOWN;
+    else
+        return std::rand() < RAND_MAX / 2 ? Result::SAT : Result::UNSAT;
 }
 
-void SMTSolver::search(std::string & smt_lib) {
-    assert(not smt_lib.empty());
-    smt_lib.clear();
+void SMTSolver::search(char * smt_lib) {
+    assert (smt_lib);
+    stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
+                   "[t SEARCH ] -> instance: ", smt_lib);
     result = Result::UNKNOWN;
     while (result == Result::UNKNOWN and not channel.shouldStop())
     {
@@ -71,8 +73,7 @@ void SMTSolver::initialise_logic()
 
 void SMTSolver::do_partition(const std::string & node, const std::string & pn)
 {
-    std::string str = "[t COMMUNICATOR ] -> doing partition at "+ node + " --- partitions: "+ pn;
-    PTPLib::PrintStopWatch psw(str, stream,
+    PTPLib::PrintStopWatch psw("[t COMMUNICATOR ] -> doing partition at "+ node + " --- partitions: "+ pn, stream,
                                color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT);
 }
 

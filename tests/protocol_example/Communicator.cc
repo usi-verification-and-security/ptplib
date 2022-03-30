@@ -4,11 +4,6 @@
 #include <string>
 
 
-void Communicator::solver_worker(const PTPLib::net::Header & header, std::string smt_lib) {
-    channel.set_current_header(header);
-    solver.search(smt_lib);
-}
-
 void Communicator::communicate_worker()
 {
     while (true)
@@ -38,22 +33,24 @@ void Communicator::communicate_worker()
             th_pool.wait_for_tasks();
 
             bool should_resume;
+
             {
                 std::scoped_lock<std::mutex> slk(channel.getMutex());
                 if (not channel.isEmpty_query() and channel.front_queries().at(PTPLib::Param.COMMAND) == PTPLib::Command.STOP)
                     should_resume = false;
-                else
+                else {
                     should_resume = execute_event(event);
+                    channel.set_current_header(event.first);
+                }
             }
+
             if (should_resume) {
                 getChannel().clearShouldStop();
                 th_pool.push_task([this, event]
                 {
-                    solver_worker(event.first, event.second + event.first.at(PTPLib::Param.QUERY));
+                    solver.search((char *)(event.second + event.first.at(PTPLib::Param.QUERY)).c_str());
                 });
             }
-
-
         }
 
         else if (channel.shouldReset())

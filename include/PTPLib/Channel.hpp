@@ -183,14 +183,15 @@ public:
     }
 
     void resetChannel() {
-//        clear_pulled_clauses();
-//        clear_learned_clauses();
+        clear_pulled_clauses();
+        clear_learned_clauses();
+        clear_queries();
         clearShouldStop();
+        clearShallStop();
         clearReset();
         clearClauseShareMode();
         setApiMode();
     }
 
 };
-
 #endif // PTPLIB_CHANNEL_HPP

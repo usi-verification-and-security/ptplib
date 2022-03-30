@@ -119,13 +119,13 @@ std::pair<PTPLib::net::Header, std::string> Listener::read_event(int counter, in
 
 void Listener::push_clause_worker(double seed, double min, double max)
 {
-    int push_duration = (waiting_duration ? waiting_duration*(150) :  min + ( std::fmod(seed, ( max - min + 1 ))));
+    int push_duration = (waiting_duration ? waiting_duration*(100) :  min + ( std::fmod(seed, ( max - min + 1 ))));
     stream.println(color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT,
                    "[t PUSH -> timout : ", push_duration," ms");
     std::chrono::duration<double> wakeupAt = std::chrono::milliseconds (push_duration);
     std::unique_ptr<std::map<std::string, std::vector<std::pair<std::string, int>>>> m_clauses;
     while (not getChannel().shouldReset()) {
-        PTPLib::PrintStopWatch psw("[t PUSH ] -> wait and write duration: ", stream,
+        PTPLib::PrintStopWatch psw("[t PUSH ] -> measured wait and write duration: ", stream,
                                    color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT);
         std::unique_lock<std::mutex> lk(getChannel().getMutex());
         if (not getChannel().wait_for(lk, wakeupAt))
@@ -153,14 +153,14 @@ void Listener::push_clause_worker(double seed, double min, double max)
 
 void Listener::pull_clause_worker(double seed, double min, double max)
 {
-    int pull_duration = (waiting_duration ? waiting_duration*(250) : min + ( std::fmod(seed, ( max - min + 1 ))));
+    int pull_duration = (waiting_duration ? waiting_duration*(200) : min + ( std::fmod(seed, ( max - min + 1 ))));
     stream.println(color_enabled ? PTPLib::Color::FG_Magenta : PTPLib::Color::FG_DEFAULT,
                    "[t PULL -> timout : ", pull_duration," ms");
     std::chrono::duration<double> wakeupAt = std::chrono::milliseconds (pull_duration);
     while (true) {
         if (getChannel().shouldReset()) break;
         std::unique_lock<std::mutex> lk(getChannel().getMutex());
-        PTPLib::PrintStopWatch psw("[t PULL ] -> wait and read duration: ", stream,
+        PTPLib::PrintStopWatch psw("[t PULL ] -> measured wait and read duration: ", stream,
                                    color_enabled ? PTPLib::Color::FG_Magenta : PTPLib::Color::FG_DEFAULT);
         if (not getChannel().wait_for(lk, wakeupAt))
         {
@@ -211,11 +211,11 @@ void Listener::write_lemma(std::unique_ptr<std::map<std::string, std::vector<std
                            PTPLib::net::Header & header)
 {
     assert(not (header.at(PTPLib::Param.NODE).empty() and header.at(PTPLib::Param.NAME).empty()));
-    for (const auto &toPushClause : *m_clauses)
+    for (const auto &node_clauses : *m_clauses)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds (int(waiting_duration ? (waiting_duration*100) :  m_clauses->size())));
         stream.println(color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT,
-                       "[t PUSH ] -> push learned clauses to Cloud Clause Size: ", toPushClause.second.size());
+                       "[t PUSH ] -> push learned clauses to Cloud Clause Size: ", node_clauses.second.size());
     }
     header.at(PTPLib::Param.COMMAND);
 }

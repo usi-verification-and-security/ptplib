@@ -42,4 +42,4 @@ cmake \
 
 make -j4
 
-./Protocol-Example 2 10 1 
+./Protocol-Example 2 10 0.1 5 

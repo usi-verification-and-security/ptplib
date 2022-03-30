@@ -8,6 +8,7 @@
 
 class Listener {
     Channel channel;
+    PTPLib::ThreadPool listener_pool;
     Communicator communicator;
     PTPLib::synced_stream & stream;
     PTPLib::StoppableWatch timer;
@@ -17,14 +18,14 @@ class Listener {
     double waiting_duration;
 
 public:
-    PTPLib::ThreadPool listener_pool;
+
     Listener(PTPLib::synced_stream & ss, const bool & ce, double wd)
         :
+        listener_pool("listener_pool", 5),
         communicator(channel, ss, ce, wd),
         stream(ss),
         color_enabled(ce),
-        waiting_duration(wd),
-        listener_pool("listener_pool", std::thread::hardware_concurrency() - 2)
+        waiting_duration(wd)
     {}
 
     void set_eventGen_stat(int inc, int nc) {
@@ -54,4 +55,5 @@ public:
 
     Channel & getChannel() { return channel;};
 
+    PTPLib::ThreadPool & getPool() { return listener_pool; }
 };

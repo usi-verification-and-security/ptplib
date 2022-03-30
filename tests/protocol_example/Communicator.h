@@ -28,8 +28,6 @@ public:
         th_pool("communicator_pool", 1)
      {}
 
-    void solver_worker(const PTPLib::net::Header & header, std::string smt_lib);
-
     bool execute_event(const std::pair<PTPLib::net::Header, std::string> & event);
 
     void setStop(std::pair<PTPLib::net::Header, std::string> & header);
