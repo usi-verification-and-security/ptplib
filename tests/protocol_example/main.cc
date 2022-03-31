@@ -18,14 +18,14 @@ int main(int argc, char** argv) {
     PTPLib::synced_stream stream (std::clog);
     PTPLib::StoppableWatch solving_watch;
     solving_watch.start();
-    std::srand((argv[3] == NULL) ? static_cast<std::uint_fast8_t>(solving_watch.elapsed_time_microseconds()) : atoi(argv[3]));
+    std::srand((argc < 4) ? static_cast<std::uint_fast8_t>(solving_watch.elapsed_time_microseconds()) : atoi(argv[4]));
     solving_watch.stop();
 
-    int number_instances = atoi(argv[1]) ;//SMTSolver::generate_rand(1, atoi(argv[1]));
+    int number_instances = atoi(argv[1]) ;
     stream.println(color_enabled ? PTPLib::Color::FG_Red : PTPLib::Color::FG_DEFAULT,
                    "<<---------------------->> Total Number of Instances: ", number_instances," <<------------------------>> ");
 
-    double waiting_duration = (argv[3] == NULL) ? 0 : std::stod(argv[3]);
+    double waiting_duration = (argc < 4) ? 0 : std::stod(argv[3]);
     Listener listener(stream, color_enabled, waiting_duration);
     int instanceNum = 0;
     while (number_instances != 0)
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
             listener.push_to_pool(PTPLib::WORKER::CLAUSEPULL, (waiting_duration ? waiting_duration : std::rand()), 2000, 4000);
         }
 
-        int nCommands = atoi(argv[2]);//SMTSolver::generate_rand(2,  atoi(argv[2]));
+        int nCommands = atoi(argv[2]);
 
 
         listener.set_eventGen_stat(++instanceNum, nCommands);
