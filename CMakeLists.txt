@@ -54,3 +54,4 @@ install(FILES
 )
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/PTPLib DESTINATION include)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/PTPLib/Net DESTINATION include)
