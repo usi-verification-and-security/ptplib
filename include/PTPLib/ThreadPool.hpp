@@ -27,7 +27,21 @@ namespace PTPLib {
 
     class ThreadPool {
         typedef std::uint_fast32_t ui32;
+
         std::string pool_name;
+
+        mutable std::mutex queue_mutex = {};
+
+        std::atomic<bool> running = true;
+
+        std::queue<std::function<void()>> tasks = {};
+
+        ui32 thread_count;
+
+        std::unique_ptr<std::thread[]> threads;
+
+        std::atomic<ui32> tasks_total = 0;
+
     public:
         ThreadPool(std::string _pool_name = std::string(), const ui32 & _thread_count = std::thread::hardware_concurrency())
         :
@@ -98,6 +112,7 @@ namespace PTPLib {
         void push_task(const F & task) {
             tasks_total++;
             {
+
                 const std::scoped_lock lock(queue_mutex);
                 tasks.push(std::function<void()>(task));
             }
@@ -106,7 +121,8 @@ namespace PTPLib {
 
         template<typename F, typename... A>
         void push_task(const F & task, const A & ...args) {
-            push_task([task, args...] { task(args...); });
+            push_task([task, args...]
+                      { task(args...); });
         }
 
 
@@ -165,7 +181,6 @@ namespace PTPLib {
             return future;
         }
 
-
         void wait_for_tasks() {
             while (true) {
                 if (!paused) {
@@ -220,23 +235,12 @@ namespace PTPLib {
                 if (!paused && pop_task(task)) {
                     task();
                     tasks_total--;
-                } else {
+                }
+                else {
                     sleep_or_yield();
                 }
             }
         }
-
-        mutable std::mutex queue_mutex = {};
-
-        std::atomic<bool> running = true;
-
-        std::queue<std::function<void()>> tasks = {};
-
-        ui32 thread_count;
-
-        std::unique_ptr<std::thread[]> threads;
-
-        std::atomic<ui32> tasks_total = 0;
     };
 }
 #endif // PTPLIB_ThreadPool_HPP

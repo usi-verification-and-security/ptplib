@@ -181,7 +181,7 @@ namespace PTPLib::net {
             return (uint8_t)(v.size() / 2);
         }
 
-        PTPLib::net::Header copy(const std::vector <std::string> & keys) const {
+        PTPLib::net::Header copy(const std::vector <std::string> & keys) {
             auto header = PTPLib::net::Header();
             for (auto & key:keys) {
                 try {

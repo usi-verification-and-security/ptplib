@@ -38,18 +38,10 @@ namespace PTPLib
         const std::string PARTITIONS = "partitions";
     } Param;
 
-    struct Task
-    {
-        const enum {
-            SOLVE, INCREMENTAL, RESUME, PARTITION, STOP
-        } command;
 
-        std::string SMTLIB;
-    };
-
-    enum WORKER
+    enum TASK
     {
-        COMMUNICATION, SOLVER, CLAUSEPULL, CLAUSEPUSH, MEMORYCHECK
+        COMMUNICATION, SOLVER, CLAUSEPULL, CLAUSEPUSH, MEMORYCHECK, CLAUSELEARN
     };
 }
 

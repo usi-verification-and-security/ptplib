@@ -23,8 +23,8 @@
 class Channel {
 
     using td_t = const std::chrono::duration<double>;
-    mutable std::mutex mutex;
-    mutable std::condition_variable cv;
+    std::mutex mutex;
+    std::condition_variable cv;
 
     typedef std::queue<std::pair<PTPLib::net::Header, std::string>> q_pair_header_str;
     q_pair_header_str queries;
@@ -35,7 +35,7 @@ class Channel {
     std::unique_ptr<m_str_vec_t> m_pulled_clauses;
 
     std::atomic_bool requestStop;
-    std::atomic_bool reset;
+    bool reset;
     bool isStopping;
     bool clauseShareMode;
     bool isFirstTime;
@@ -59,7 +59,7 @@ public:
 
     std::mutex & getMutex() { return mutex; }
 
-    void insert_learned_clause(std::vector<std::pair<std::string, int>> & toPublish_clauses) {
+    void insert_learned_clause(std::vector<std::pair<std::string, int>> && toPublish_clauses) {
         (*m_learned_clauses)[get_current_header().at(PTPLib::Param.NODE)].insert
         (
                 std::end((*m_learned_clauses)[get_current_header().at(PTPLib::Param.NODE)]),
@@ -67,7 +67,7 @@ public:
         );
     }
 
-    void insert_pulled_clause(std::vector<std::pair<std::string, int>> & toInject_clauses) {
+    void insert_pulled_clause(std::vector<std::pair<std::string, int>> && toInject_clauses) {
         (*m_pulled_clauses)[get_current_header().at(PTPLib::Param.NODE)].insert
         (
                 std::end((*m_pulled_clauses)[get_current_header().at(PTPLib::Param.NODE)]),
@@ -111,6 +111,8 @@ public:
     void set_current_header(PTPLib::net::Header hd) { current_header = hd.copy(hd.keys()); }
 
     PTPLib::net::Header  get_current_header()  { return current_header; }
+
+    void clear_current_header() { current_header.clear(); }
 
     size_t size() const { return m_learned_clauses->size(); }
 
@@ -185,6 +187,7 @@ public:
     void resetChannel() {
         clear_pulled_clauses();
         clear_learned_clauses();
+        clear_current_header();
         clear_queries();
         clearShouldStop();
         clearShallStop();
