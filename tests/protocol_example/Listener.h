@@ -21,8 +21,8 @@ public:
 
     Listener(PTPLib::synced_stream & ss, const bool & ce, double wd)
         :
-        listener_pool("listener_pool", 5),
-        communicator(channel, ss, ce, wd),
+        listener_pool("listener_pool", std::thread::hardware_concurrency()-1),
+        communicator(channel, ss, ce, wd, listener_pool),
         stream(ss),
         color_enabled(ce),
         waiting_duration(wd)
@@ -35,9 +35,9 @@ public:
 
     void notify_reset();
 
-    void worker(PTPLib::WORKER tname, double seed, double td_min, double td_max);
+    void worker(PTPLib::TASK tname, double seed, double td_min, double td_max);
 
-    void push_to_pool(PTPLib::WORKER tname, double seed = 0, double td_min = 0, double td_max = 0);
+    void push_to_pool(PTPLib::TASK tname, double seed = 0, double td_min = 0, double td_max = 0);
 
     std::pair<PTPLib::net::Header, std::string> read_event(int counter, int solve_time);
 
@@ -49,9 +49,9 @@ public:
 
     bool read_lemma(std::vector<std::pair<std::string, int>> & lemmas, PTPLib::net::Header & header);
 
-    void write_lemma(std::unique_ptr<std::map<std::string, std::vector<std::pair<std::string, int>>>> const & lemmas, PTPLib::net::Header & header);
+    bool write_lemma(std::unique_ptr<std::map<std::string, std::vector<std::pair<std::string, int>>>> const & lemmas, PTPLib::net::Header & header);
 
-    void mem_check(const std::string & max_memory);
+    void memory_checker();
 
     Channel & getChannel() { return channel;};
 

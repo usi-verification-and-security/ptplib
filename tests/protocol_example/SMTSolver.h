@@ -28,13 +28,15 @@ public:
             waiting_duration(wd)
     {}
 
+    void setResult(Result res)     { result = res; }
+
     Result   getResult()  const    { return result; }
 
     Channel& getChannel() const    { return channel; }
 
     static int generate_rand(int min, int max);
 
-    void search(char * smt_lib);
+    SMTSolver::Result search(char * smt_lib);
 
     void inject_clauses(std::map<std::string, std::vector<std::pair<std::string, int>>> & pulled_clauses);
 

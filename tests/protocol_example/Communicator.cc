@@ -14,7 +14,12 @@ void Communicator::communicate_worker()
         if (channel.shallStop())
         {
             channel.getMutex().unlock();
-            th_pool.wait_for_tasks();
+
+            if (future.valid()) {
+                future.wait();
+                solver.setResult(future.get());
+                assert(solver.getResult()!= SMTSolver::Result::UNKNOWN);
+            }
 
             {
                 std::scoped_lock<std::mutex> slk(channel.getMutex());
@@ -29,28 +34,34 @@ void Communicator::communicate_worker()
                "[t COMMUNICATOR ] -> ", "updating the channel with ", event.first.at(PTPLib::Param.COMMAND), " and waiting");
             channel.getMutex().unlock();
 
-            setStop(event);
-            th_pool.wait_for_tasks();
+            if (setStop(event)) {
+                if (future.valid())
+                {
+                    future.wait();
+                    future.get();
+                }
+            }
 
             bool should_resume;
-
             {
                 std::scoped_lock<std::mutex> slk(channel.getMutex());
-                if (not channel.isEmpty_query() and channel.front_queries().at(PTPLib::Param.COMMAND) == PTPLib::Command.STOP)
-                    should_resume = false;
-                else {
-                    should_resume = execute_event(event);
+                should_resume = execute_event(event);
+                if (should_resume) {
+                    channel.clear_current_header();
                     channel.set_current_header(event.first);
                 }
             }
 
             if (should_resume) {
                 getChannel().clearShouldStop();
-                th_pool.push_task([this, event]
+
+                future = th_pool.submit([this, event]
                 {
-                    solver.search((char *)(event.second + event.first.at(PTPLib::Param.QUERY)).c_str());
+                    return solver.search((char *)(event.second + event.first.at(PTPLib::Param.QUERY)).c_str());
                 });
-            }
+
+            } else
+                break;
         }
 
         else if (channel.shouldReset())
@@ -82,12 +93,18 @@ bool Communicator::execute_event(const std::pair<PTPLib::net::Header, std::strin
         auto pulled_clauses = channel.swap_pulled_clauses();
         solver.inject_clauses(*pulled_clauses);
     }
+    if (not channel.isEmpty_query() and channel.front_queries().at(PTPLib::Param.COMMAND) == PTPLib::Command.STOP)
+        return false;
     return true;
 }
 
 
-void Communicator::setStop(std::pair<PTPLib::net::Header, std::string> & header_payload)
+bool Communicator::setStop(std::pair<PTPLib::net::Header, std::string> & header_payload)
 {
-    if (header_payload.first.at(PTPLib::Param.COMMAND) != PTPLib::Command.SOLVE)
-            channel.setShouldStop();
+    if (header_payload.first.at(PTPLib::Param.COMMAND) != PTPLib::Command.SOLVE) {
+        channel.setShouldStop();
+        return true;
+    }
+    else
+        return false;
 }

@@ -15,22 +15,22 @@ class Communicator {
     PTPLib::synced_stream & stream;
     PTPLib::StoppableWatch timer;
     bool color_enabled;
-    PTPLib::ThreadPool th_pool;
-
+    PTPLib::ThreadPool & th_pool;
+    std::future<SMTSolver::Result> future;
 public:
 
-    Communicator(Channel & ch, PTPLib::synced_stream & ss, const bool & ce, double seed)
+    Communicator(Channel & ch, PTPLib::synced_stream & ss, const bool & ce, double seed, PTPLib::ThreadPool & th)
         :
         channel(ch),
         solver(ch, ss, timer, ce, seed),
         stream(ss),
         color_enabled(ce),
-        th_pool("communicator_pool", 1)
+        th_pool(th)
      {}
 
     bool execute_event(const std::pair<PTPLib::net::Header, std::string> & event);
 
-    void setStop(std::pair<PTPLib::net::Header, std::string> & header);
+    bool setStop(std::pair<PTPLib::net::Header, std::string> & header);
 
     void communicate_worker();
 

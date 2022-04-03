@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    PTPLib::synced_stream stream (std::clog);
+    PTPLib::synced_stream stream(std::clog);
     PTPLib::StoppableWatch solving_watch;
     solving_watch.start();
     std::srand((argc < 4) ? static_cast<std::uint_fast8_t>(solving_watch.elapsed_time_microseconds()) : atoi(argv[4]));
@@ -32,11 +32,11 @@ int main(int argc, char** argv) {
     {
         solving_watch.start();
         {
-            listener.push_to_pool(PTPLib::WORKER::MEMORYCHECK);
-            listener.push_to_pool(PTPLib::WORKER::COMMUNICATION);
+            listener.push_to_pool(PTPLib::TASK::MEMORYCHECK);
+            listener.push_to_pool(PTPLib::TASK::COMMUNICATION);
 
-            listener.push_to_pool(PTPLib::WORKER::CLAUSEPUSH, (waiting_duration ? waiting_duration : std::rand()), 1000, 2000);
-            listener.push_to_pool(PTPLib::WORKER::CLAUSEPULL, (waiting_duration ? waiting_duration : std::rand()), 2000, 4000);
+            listener.push_to_pool(PTPLib::TASK::CLAUSEPUSH, (waiting_duration ? waiting_duration : std::rand()), 1000, 2000);
+            listener.push_to_pool(PTPLib::TASK::CLAUSEPULL, (waiting_duration ? waiting_duration : std::rand()), 2000, 4000);
         }
 
         int nCommands = atoi(argv[2]);

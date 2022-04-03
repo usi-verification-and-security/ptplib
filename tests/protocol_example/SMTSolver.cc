@@ -8,7 +8,7 @@
 
 bool SMTSolver::learnSomeClauses(std::vector<std::pair<std::string ,int>> & learned_clauses) {
     int rand_number = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(0, 2000);
-    if (std::rand() < RAND_MAX/100)
+    if (SMTSolver::generate_rand(1, 2000) % 30 == 0)
         return false;
 
     for (int i = 0; i < rand_number ; ++i) {
@@ -28,31 +28,34 @@ SMTSolver::Result SMTSolver::do_solve() {
         stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
                        "[t SEARCH ] -> add learned clauses to channel buffer, Size : ",
                        toPublishClauses.size());
-        channel.insert_learned_clause(toPublishClauses);
+        channel.insert_learned_clause(std::move(toPublishClauses));
         return Result::UNKNOWN;
     }
     else
         return std::rand() < RAND_MAX / 2 ? Result::SAT : Result::UNSAT;
 }
 
-void SMTSolver::search(char * smt_lib) {
+SMTSolver::Result SMTSolver::search(char * smt_lib) {
     assert (smt_lib);
     stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
                    "[t SEARCH ] -> instance: ", smt_lib);
-    result = Result::UNKNOWN;
-    while (result == Result::UNKNOWN and not channel.shouldStop())
+    Result result = Result::UNKNOWN;
+    while (not channel.shouldStop())
     {
         result = do_solve();
         if (result != Result::UNKNOWN) {
-            std::scoped_lock<std::mutex> lk(channel.getMutex());
+            std::unique_lock<std::mutex> lk(channel.getMutex());
             channel.setShallStop();
             stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
                            "[t SEARCH ] -> set shall stop");
+            lk.unlock();
             channel.notify_all();
+            break;
         }
     }
     stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
                    "[t SEARCH ] -> solver exited with ", SMTSolver::resultToString(result));
+    return result;
 }
 
 void SMTSolver::inject_clauses(std::map<std::string, std::vector<std::pair<std::string, int>>> & pulled_clauses)
