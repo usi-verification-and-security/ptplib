@@ -9,6 +9,7 @@
 #ifndef PTPLIB_ThreadPool_HPP
 #define PTPLIB_ThreadPool_HPP
 
+#include "Printer.hpp"
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -34,7 +35,7 @@ namespace PTPLib {
 
         std::atomic<bool> running = true;
 
-        std::queue<std::function<void()>> tasks = {};
+        std::queue<std::pair<std::function<void()>, std::string>> tasks = {};
 
         ui32 thread_count;
 
@@ -42,12 +43,16 @@ namespace PTPLib {
 
         std::atomic<ui32> tasks_total = 0;
 
+        PTPLib::synced_stream & stream;
+
     public:
-        ThreadPool(std::string _pool_name = std::string(), const ui32 & _thread_count = std::thread::hardware_concurrency())
+        ThreadPool(PTPLib::synced_stream & ss,
+                std::string _pool_name = std::string(), const ui32 & _thread_count = std::thread::hardware_concurrency())
         :
             pool_name    (_pool_name),
             thread_count (_thread_count),
-            threads      (new std::thread[_thread_count])
+            threads      (new std::thread[_thread_count]),
+            stream  (ss)
         {
            create_threads();
         }
@@ -109,12 +114,11 @@ namespace PTPLib {
 
 
         template<typename F>
-        void push_task(const F & task) {
+        void push_task(const F & task, std::string task_name = std::string()) {
             tasks_total++;
             {
-
                 const std::scoped_lock lock(queue_mutex);
-                tasks.push(std::function<void()>(task));
+                tasks.push(std::make_pair(std::function<void()>(task), task_name));
             }
         }
 
@@ -163,10 +167,10 @@ namespace PTPLib {
 
         template<typename F, typename... A, typename R = std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>,
                 typename = std::enable_if_t<!std::is_void_v<R>>>
-        std::future<R> submit(const F & task, const A & ...args) {
+        std::future<R> submit(const F & task, const A & ...args, std::string task_name=std::string()) {
             std::shared_ptr<std::promise<R>> task_promise(new std::promise<R>);
             std::future<R> future = task_promise->get_future();
-            push_task([task, args..., task_promise] {
+            push_task([task, args..., task_promise, task_name] {
                 try {
                     task_promise->set_value(task(args...));
                 }
@@ -177,16 +181,21 @@ namespace PTPLib {
                     catch (...) {
                     }
                 }
-            });
+            }, task_name);
             return future;
         }
 
-        void wait_for_tasks() {
-            while (true) {
-                if (!paused) {
+        void wait_for_tasks()
+        {
+            while (true)
+            {
+                if (!paused)
+                {
                     if (tasks_total == 0)
                         break;
-                } else {
+                }
+                else
+                {
                     if (get_tasks_running() == 0)
                         break;
                 }
@@ -195,6 +204,7 @@ namespace PTPLib {
         }
 
         void destroy_threads() {
+            const std::scoped_lock lock(queue_mutex);
             for (ui32 i = 0; i < thread_count; i++) {
                 threads[i].join();
             }
@@ -202,16 +212,17 @@ namespace PTPLib {
 
         std::atomic<bool> paused = false;
 
-        ui32 sleep_duration = 100;
+        ui32 sleep_duration = 1000;
 
     private:
         void create_threads() {
-            for (ui32 i = 0; i < thread_count; i++) {
+            const std::scoped_lock lock(queue_mutex);
+            for (ui32 i = 0; i < thread_count; ++i) {
                 threads[i] = std::thread(&ThreadPool::worker, this);
             }
         }
 
-        bool pop_task(std::function<void()> & task) {
+        bool pop_task(std::pair<std::function<void()>, std::string> & task) {
             const std::scoped_lock lock(queue_mutex);
             if (tasks.empty())
                 return false;
@@ -231,9 +242,10 @@ namespace PTPLib {
 
         void worker() {
             while (running) {
-                std::function<void()> task;
+                std::pair<std::function<void()>, std::string> task;
                 if (!paused && pop_task(task)) {
-                    task();
+                    stream.println(PTPLib::Color::FG_BrightRed, "task id : ",task.second);
+                    task.first();
                     tasks_total--;
                 }
                 else {
