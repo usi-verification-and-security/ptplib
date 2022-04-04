@@ -3,10 +3,13 @@
 
 #include <PTPLib/Memory.hpp>
 #include "PTPLib/Net/Lemma.hpp"
+#include <PTPLib/Exception.hpp>
+
 #include <iostream>
 #include <string>
 #include <cmath>
 #include <cassert>
+
 
 void Listener::memory_checker()
 {
@@ -27,10 +30,10 @@ void Listener::memory_checker()
             break;
         assert([&]() {
             if (memory_thread_id != std::this_thread::get_id())
-                throw std::runtime_error(";error: memory_checker has inconsistent thread id");
+                throw Exception(__FILE__, __LINE__, "memory_checker has inconsistent thread id");
 
             if (not lk.owns_lock()) {
-                throw std::runtime_error(";error: memory_checker can't take the lock");
+                throw Exception(__FILE__, __LINE__, "memory_checker can't take the lock");
             }
             return true;
         }());
@@ -144,10 +147,10 @@ void Listener::push_clause_worker(double seed, double min, double max)
         bool reset = getChannel().wait_for(lk, wakeupAt);
         assert([&]() {
             if (push_thread_id != std::this_thread::get_id())
-                throw std::runtime_error(";error: push_clause_worker has inconsistent thread id");
+                throw Exception(__FILE__, __LINE__, "push_clause_worker has inconsistent thread id");
 
             if (not lk.owns_lock()) {
-                throw std::runtime_error(";error: push_clause_worker can't take the lock");
+                throw Exception(__FILE__, __LINE__, "push_clause_worker can't take the lock");
             }
             return true;
         }());
@@ -160,7 +163,12 @@ void Listener::push_clause_worker(double seed, double min, double max)
                 auto header = getChannel().get_current_header();
                 assert(not header.empty());
                 lk.unlock();
-                assert(push_thread_id == std::this_thread::get_id());
+                assert([&]() {
+                    if (lk.owns_lock()) {
+                        throw Exception(__FILE__, __LINE__, "push_clause_worker should not hold the lock");
+                    }
+                    return true;
+                }());
                 if (not header.empty()) {
                     write_lemma(m_clauses, header);
                     m_clauses->clear();
@@ -195,11 +203,12 @@ void Listener::pull_clause_worker(double seed, double min, double max)
         bool reset = getChannel().wait_for(lk, wakeupAt);
         assert([&]() {
             if (pull_thread_id != std::this_thread::get_id())
-                throw std::runtime_error(";error: push_clause_worker has inconsistent thread id");
+                throw Exception(__FILE__, __LINE__, "pull_clause_worker has inconsistent thread id");
 
             if (not lk.owns_lock()) {
-                throw std::runtime_error(";error: pull_clause_worker can't take the lock");
+                throw Exception(__FILE__, __LINE__, "pull_clause_worker can't take the lock");
             }
+
             return true;
         }());
         if (not reset)
@@ -207,7 +216,13 @@ void Listener::pull_clause_worker(double seed, double min, double max)
             auto header = channel.get_current_header();
             assert(not header.empty());
             lk.unlock();
-            assert(pull_thread_id == std::this_thread::get_id());
+            assert([&]() {
+                if (lk.owns_lock()) {
+                    throw Exception(__FILE__, __LINE__, "pull_clause_worker should not hold the lock");
+                }
+
+                return true;
+            }());
             if (not header.empty()) {
                 std::vector<std::pair<std::string, int>> lemmas;
                 if (this->read_lemma(lemmas, header)) {

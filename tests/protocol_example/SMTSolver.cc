@@ -1,5 +1,7 @@
 #include "SMTSolver.h"
 
+#include <PTPLib/Exception.hpp>
+
 #include <iostream>
 #include <string>
 #include <cassert>
@@ -24,11 +26,21 @@ SMTSolver::Result SMTSolver::do_solve() {
     std::vector<std::pair<std::string ,int>>  toPublishClauses;
     if (learnSomeClauses(toPublishClauses))
     {
-        std::scoped_lock<std::mutex> lk(channel.getMutex());
+        std::unique_lock<std::mutex> lk(channel.getMutex());
+        assert([&]() {
+            if (thread_id != std::this_thread::get_id())
+                throw Exception(__FILE__, __LINE__, "search has inconsistent thread id");
+
+            if (not lk.owns_lock()) {
+                throw Exception(__FILE__, __LINE__, "search can't take the lock");
+            }
+            return true;
+        }());
         stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
                        "[t SEARCH ] -> add learned clauses to channel buffer, Size : ",
                        toPublishClauses.size());
         channel.insert_learned_clause(std::move(toPublishClauses));
+        lk.unlock();
         return Result::UNKNOWN;
     }
     else
@@ -48,10 +60,10 @@ SMTSolver::Result SMTSolver::search(char * smt_lib) {
             std::unique_lock<std::mutex> lk(channel.getMutex());
             assert([&]() {
                 if (thread_id != std::this_thread::get_id())
-                    throw std::runtime_error(";error: search has inconsistent thread id");
+                    throw Exception(__FILE__, __LINE__, "search has inconsistent thread id");
 
                 if (not lk.owns_lock()) {
-                    throw std::runtime_error(";error: search can't take the lock");
+                    throw Exception(__FILE__, __LINE__, "search can't take the lock");
                 }
                 return true;
             }());

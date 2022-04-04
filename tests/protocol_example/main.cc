@@ -1,9 +1,10 @@
 #include "Listener.cc"
 
-#include <iostream>
-#include <string>
 #include <PTPLib/PartitionConstant.hpp>
 #include <PTPLib/lib.hpp>
+
+#include <iostream>
+#include <string>
 
 int main(int argc, char** argv) {
 

@@ -1,5 +1,7 @@
 #include "Communicator.h"
 
+#include <PTPLib/Exception.hpp>
+
 #include <iostream>
 #include <string>
 #include <cassert>
@@ -15,10 +17,10 @@ void Communicator::communicate_worker()
         bool ok = (getChannel().wait_for_event(lk, wakeupAt) or getChannel().wait_for_solver(lk, wakeupAt));
         assert([&]() {
             if (thread_id != std::this_thread::get_id())
-                throw std::runtime_error(";error: communicate_worker has inconsistent thread id");
+                throw Exception(__FILE__, __LINE__, "communicate_worker has inconsistent thread id");
 
             if (not lk.owns_lock()) {
-                throw std::runtime_error(";error: communicate_worker can't take the lock");
+                throw Exception(__FILE__, __LINE__, "communicate_worker can't take the lock");
             }
             return true;
         }());
