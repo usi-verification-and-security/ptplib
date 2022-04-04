@@ -3,14 +3,16 @@
 #include <iostream>
 #include <string>
 #include <cassert>
+#include <climits>
 
 void Communicator::communicate_worker()
 {
     thread_id = std::this_thread::get_id();
     while (true)
     {
+        std::chrono::duration<double> wakeupAt = std::chrono::seconds (INT_MAX);
         std::unique_lock<std::mutex> lk(channel.getMutex());
-        getChannel().wait(lk);
+        bool ok = (getChannel().wait_for_event(lk, wakeupAt) or getChannel().wait_for_solver(lk, wakeupAt));
         assert([&]() {
             if (thread_id != std::this_thread::get_id())
                 throw std::runtime_error(";error: communicate_worker has inconsistent thread id");
@@ -20,64 +22,57 @@ void Communicator::communicate_worker()
             }
             return true;
         }());
-        if (channel.shallStop())
-        {
-            channel.getMutex().unlock();
+        if (ok) {
+            if (channel.shallStop()) {
+                channel.getMutex().unlock();
 
-            if (future.valid()) {
-                future.wait();
-                solver.setResult(future.get());
-                assert(solver.getResult()!= SMTSolver::Result::UNKNOWN);
-            }
-
-            {
-                std::scoped_lock<std::mutex> slk(channel.getMutex());
-                channel.clearShallStop();
-            }
-        }
-
-        else if (not getChannel().isEmpty_query())
-        {
-            auto event = getChannel().pop_front_query();
-            assert(not event.first[PTPLib::Param.COMMAND].empty());
-            stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
-               "[t COMMUNICATOR ] -> ", "updating the channel with ", event.first.at(PTPLib::Param.COMMAND), " and waiting");
-            channel.getMutex().unlock();
-
-            if (setStop(event)) {
-                if (future.valid())
-                {
+                if (future.valid()) {
                     future.wait();
-                    future.get();
+                    solver.setResult(future.get());
+                    assert(solver.getResult() != SMTSolver::Result::UNKNOWN);
                 }
-            }
 
-            bool should_resume;
-            bool shouldUpdateSolverAddress = false;
-            {
-                std::scoped_lock<std::mutex> slk(channel.getMutex());
-                should_resume = execute_event(event, shouldUpdateSolverAddress);
-                if (shouldUpdateSolverAddress) {
-                    channel.clear_current_header();
-                    channel.set_current_header(event.first);
-                }
-            }
-
-            if (should_resume) {
-                getChannel().clearShouldStop();
-                future = th_pool.submit([this, event]
                 {
-                    assert(not event.first.at(PTPLib::Param.QUERY).empty());
-                    return solver.search((char *)(event.second + event.first.at(PTPLib::Param.QUERY)).c_str());
-                }, to_string(PTPLib::TASK::SOLVER));
+                    std::scoped_lock<std::mutex> slk(channel.getMutex());
+                    channel.clearShallStop();
+                }
+            } else if (not getChannel().isEmpty_query()) {
+                auto event = getChannel().pop_front_query();
+                assert(not event.first[PTPLib::Param.COMMAND].empty());
+                stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
+                               "[t COMMUNICATOR ] -> ", "updating the channel with ",
+                               event.first.at(PTPLib::Param.COMMAND), " and waiting");
+                channel.getMutex().unlock();
 
-            } else
+                if (setStop(event)) {
+                    if (future.valid()) {
+                        future.wait();
+                        future.get();
+                    }
+                }
+
+                bool should_resume;
+                bool shouldUpdateSolverAddress = false;
+                {
+                    std::scoped_lock<std::mutex> slk(channel.getMutex());
+                    should_resume = execute_event(event, shouldUpdateSolverAddress);
+                    if (shouldUpdateSolverAddress) {
+                        channel.clear_current_header();
+                        channel.set_current_header(event.first);
+                    }
+                }
+
+                if (should_resume) {
+                    getChannel().clearShouldStop();
+                    future = th_pool.submit([this, event] {
+                        assert(not event.first.at(PTPLib::Param.QUERY).empty());
+                        return solver.search((char *) (event.second + event.first.at(PTPLib::Param.QUERY)).c_str());
+                    }, to_string(PTPLib::TASK::SOLVER));
+
+                }
+            } else if (channel.shouldReset())
                 break;
         }
-
-        else if (channel.shouldReset())
-            break;
-
         else {
             stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
                            "[t COMMUNICATOR ] -> ", "spurious wake up!");

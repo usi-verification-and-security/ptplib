@@ -56,7 +56,7 @@ SMTSolver::Result SMTSolver::search(char * smt_lib) {
                 return true;
             }());
             channel.setShallStop();
-            channel.notify_all();
+            channel.notify_one();
             lk.unlock();
 
             stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,

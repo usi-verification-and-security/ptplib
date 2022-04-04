@@ -25,7 +25,7 @@ class Channel {
     using td_t = const std::chrono::duration<double>;
     std::mutex mutex;
     std::condition_variable cv;
-
+    std::condition_variable cv_isStopping;
     typedef std::queue<std::pair<PTPLib::net::Header, std::string>> q_pair_header_str;
     q_pair_header_str queries;
     PTPLib::net::Header current_header;
@@ -132,7 +132,7 @@ public:
 
     auto end() const { return m_learned_clauses->end(); }
 
-    void notify_one() { cv.notify_one(); }
+    void notify_one() { cv_isStopping.notify_one(); }
 
     void notify_all() { cv.notify_all(); }
 
@@ -183,8 +183,13 @@ public:
     bool wait_for(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
         return cv.wait_for(lock, timeout_duration, [&] { return (shouldReset()); });
     }
-    void wait_for_queue_or_solver(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
-        cv.wait_for(lock, timeout_duration, [&] { return (shouldReset() or not isEmpty_query() or shallStop()); });
+
+    bool wait_for_event(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
+        return cv.wait_for(lock, timeout_duration, [&] { return (shouldReset() or not isEmpty_query()); });
+    }
+
+    bool wait_for_solver(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
+        return  cv_isStopping.wait_for(lock, timeout_duration, [&] { return shallStop(); });
     }
 
     void wait(std::unique_lock<std::mutex> & lock) {
@@ -192,6 +197,7 @@ public:
     }
 
     void resetChannel() {
+
         clear_pulled_clauses();
         clear_learned_clauses();
         clear_current_header();
