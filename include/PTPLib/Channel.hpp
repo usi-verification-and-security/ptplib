@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <chrono>
 #include <queue>
-
+#include <cassert>
 
 class Channel {
 
@@ -60,6 +60,7 @@ public:
     std::mutex & getMutex() { return mutex; }
 
     void insert_learned_clause(std::vector<std::pair<std::string, int>> && toPublish_clauses) {
+        assert(not get_current_header().at(PTPLib::Param.NODE).empty());
         (*m_learned_clauses)[get_current_header().at(PTPLib::Param.NODE)].insert
         (
                 std::end((*m_learned_clauses)[get_current_header().at(PTPLib::Param.NODE)]),
@@ -68,6 +69,7 @@ public:
     }
 
     void insert_pulled_clause(std::vector<std::pair<std::string, int>> && toInject_clauses) {
+        assert(not get_current_header().at(PTPLib::Param.NODE).empty());
         (*m_pulled_clauses)[get_current_header().at(PTPLib::Param.NODE)].insert
         (
                 std::end((*m_pulled_clauses)[get_current_header().at(PTPLib::Param.NODE)]),
@@ -106,9 +108,15 @@ public:
 
     PTPLib::net::Header & front_queries()  { return queries.front().first;}
 
-    void push_back_query(std::pair<PTPLib::net::Header, std::string> && hd) { queries.push(std::move(hd)); }
+    void push_back_query(std::pair<PTPLib::net::Header, std::string> && hd) {
+        assert((not hd.first.at(PTPLib::Param.NODE).empty()) and (not hd.first.at(PTPLib::Param.NAME).empty()));
+        queries.push(std::move(hd));
+    }
 
-    void set_current_header(PTPLib::net::Header hd) { current_header = hd.copy(hd.keys()); }
+    void set_current_header(PTPLib::net::Header hd) {
+        assert((not hd.at(PTPLib::Param.NODE).empty()) and (not hd.at(PTPLib::Param.NAME).empty()));
+        current_header = hd.copy(hd.keys());
+    }
 
     PTPLib::net::Header  get_current_header()  { return current_header; }
 
@@ -132,7 +140,7 @@ public:
 
     void clear_pulled_clauses() { m_pulled_clauses->clear(); }
 
-    bool empty() const { return (m_learned_clauses ?  m_learned_clauses->empty() : false); }
+    bool empty() const { return (m_learned_clauses->empty()); }
 
     bool shouldReset() const { return reset; }
 
@@ -173,9 +181,8 @@ public:
     void clearApiMode() { apiMode = false; }
 
     bool wait_for(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
-        return cv.wait_for(lock, timeout_duration, [&] { return shouldReset(); });
+        return cv.wait_for(lock, timeout_duration, [&] { return (shouldReset()); });
     }
-
     void wait_for_queue_or_solver(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
         cv.wait_for(lock, timeout_duration, [&] { return (shouldReset() or not isEmpty_query() or shallStop()); });
     }

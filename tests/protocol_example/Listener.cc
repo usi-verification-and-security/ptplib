@@ -6,9 +6,11 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <cassert>
 
 void Listener::memory_checker()
 {
+    memory_thread_id = std::this_thread::get_id();
     size_t limit = 4000;//atoll(max_memory.c_str());
     if (limit == 0)
         return;
@@ -23,6 +25,15 @@ void Listener::memory_checker()
         std::unique_lock<std::mutex> lk(channel.getMutex());
         if (channel.wait_for(lk, std::chrono::seconds (10)))
             break;
+        assert([&]() {
+            if (memory_thread_id != std::this_thread::get_id())
+                throw std::runtime_error(";error: memory_checker has inconsistent thread id");
+
+            if (not lk.owns_lock()) {
+                throw std::runtime_error(";error: memory_checker can't take the lock");
+            }
+            return true;
+        }());
     }
 }
 
@@ -57,7 +68,7 @@ void Listener::push_to_pool(PTPLib::TASK t_name, double seed, double td_min, dou
     listener_pool.push_task([this, t_name, seed, td_min, td_max]
     {
             worker(t_name, seed, td_min, td_max);
-    });
+    }, to_string(t_name));
 }
 
 void Listener::notify_reset()
@@ -121,24 +132,35 @@ std::pair<PTPLib::net::Header, std::string> Listener::read_event(int counter, in
 
 void Listener::push_clause_worker(double seed, double min, double max)
 {
+    push_thread_id = std::this_thread::get_id();
     int push_duration = (seed ? seed*(100) :  min + ( std::fmod(seed, ( max - min + 1 ))));
     stream.println(color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT,
                    "[t PUSH -> timout : ", push_duration," ms");
     std::chrono::duration<double> wakeupAt = std::chrono::milliseconds (push_duration);
-
     while (true) {
         PTPLib::PrintStopWatch psw("[t PUSH ] -> measured wait and write duration: ", stream,
                                    color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT);
         std::unique_lock<std::mutex> lk(getChannel().getMutex());
-        if (not getChannel().wait_for(lk, wakeupAt))
+        bool reset = getChannel().wait_for(lk, wakeupAt);
+        assert([&]() {
+            if (push_thread_id != std::this_thread::get_id())
+                throw std::runtime_error(";error: push_clause_worker has inconsistent thread id");
+
+            if (not lk.owns_lock()) {
+                throw std::runtime_error(";error: push_clause_worker can't take the lock");
+            }
+            return true;
+        }());
+        if (not reset)
         {
             if (not getChannel().empty())
             {
                 auto m_clauses = getChannel().swap_learned_clauses();
                 getChannel().clear_learned_clauses();
                 auto header = getChannel().get_current_header();
+                assert(not header.empty());
                 lk.unlock();
-
+                assert(push_thread_id == std::this_thread::get_id());
                 if (not header.empty()) {
                     write_lemma(m_clauses, header);
                     m_clauses->clear();
@@ -147,15 +169,20 @@ void Listener::push_clause_worker(double seed, double min, double max)
             else stream.println(color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT,
                                 "[t PUSH ] -> Channel empty!");
         }
-        else {
-            lk.unlock();
+        else if (getChannel().shouldReset())
             break;
+
+        else {
+            stream.println(color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT,
+                           "[t PUSH ] -> ", "spurious wake up!");
+            assert(false);
         }
     }
 }
 
 void Listener::pull_clause_worker(double seed, double min, double max)
 {
+    pull_thread_id = std::this_thread::get_id();
     int pull_duration = (seed ? seed*(200) : min + ( std::fmod(seed, ( max - min + 1 ))));
     stream.println(color_enabled ? PTPLib::Color::FG_Magenta : PTPLib::Color::FG_DEFAULT,
                    "[t PULL -> timout : ", pull_duration," ms");
@@ -165,10 +192,22 @@ void Listener::pull_clause_worker(double seed, double min, double max)
         PTPLib::PrintStopWatch psw("[t PULL ] -> measured wait and read duration: ", stream,
                                    color_enabled ? PTPLib::Color::FG_Magenta : PTPLib::Color::FG_DEFAULT);
         std::unique_lock<std::mutex> lk(getChannel().getMutex());
-        if (not getChannel().wait_for(lk, wakeupAt))
+        bool reset = getChannel().wait_for(lk, wakeupAt);
+        assert([&]() {
+            if (pull_thread_id != std::this_thread::get_id())
+                throw std::runtime_error(";error: push_clause_worker has inconsistent thread id");
+
+            if (not lk.owns_lock()) {
+                throw std::runtime_error(";error: pull_clause_worker can't take the lock");
+            }
+            return true;
+        }());
+        if (not reset)
         {
             auto header = channel.get_current_header();
+            assert(not header.empty());
             lk.unlock();
+            assert(pull_thread_id == std::this_thread::get_id());
             if (not header.empty()) {
                 std::vector<std::pair<std::string, int>> lemmas;
                 if (this->read_lemma(lemmas, header)) {
@@ -182,23 +221,26 @@ void Listener::pull_clause_worker(double seed, double min, double max)
                         channel.insert_pulled_clause(std::move(lemmas));
                         header.erase(PTPLib::Param.COMMAND);
                         header[PTPLib::Param.COMMAND] = PTPLib::Command.CLAUSEINJECTION;
-                        queue_event(std::make_pair(header, ""));
+                        queue_event(std::make_pair(header, PTPLib::Command.CLAUSEINJECTION));
                     }
                     stream.println(color_enabled ? PTPLib::Color::FG_Magenta : PTPLib::Color::FG_DEFAULT,
                                    "[t PULL ] -> ", PTPLib::Command.CLAUSEINJECTION, " is queued and notified");
                 }
             }
-        }
-        else {
-            lk.unlock();
+        } else if (getChannel().shouldReset())
             break;
-        }
+
+        else {
+                stream.println(color_enabled ? PTPLib::Color::FG_Magenta : PTPLib::Color::FG_DEFAULT,
+                               "[t PULL ] -> ", "spurious wake up!");
+                assert(false);
+            }
     }
 }
 
 bool Listener::read_lemma(std::vector<std::pair<std::string, int>>  & lemmas, PTPLib::net::Header & header) {
 
-    assert(not (header.at(PTPLib::Param.NODE).empty() and header.at(PTPLib::Param.NAME).empty()));
+    assert((not header.at(PTPLib::Param.NODE).empty()) and (not header.at(PTPLib::Param.NAME).empty()));
 
     int rand_number = waiting_duration ? waiting_duration*(200) : SMTSolver::generate_rand(100, 2000);
     std::this_thread::sleep_for(std::chrono::milliseconds (rand_number));
@@ -215,7 +257,7 @@ bool Listener::read_lemma(std::vector<std::pair<std::string, int>>  & lemmas, PT
 bool Listener::write_lemma(std::unique_ptr<std::map<std::string, std::vector<std::pair<std::string, int>>>> const & m_clauses,
                            PTPLib::net::Header & header)
 {
-    assert(not (header.at(PTPLib::Param.NODE).empty() and header.at(PTPLib::Param.NAME).empty()));
+    assert((not header.at(PTPLib::Param.NODE).empty()) and (not header.at(PTPLib::Param.NAME).empty()));
     for (const auto &node_clauses : *m_clauses)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds (int(waiting_duration ? (waiting_duration*100) :  m_clauses->size())));

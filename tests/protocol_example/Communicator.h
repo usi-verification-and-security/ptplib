@@ -17,6 +17,8 @@ class Communicator {
     bool color_enabled;
     PTPLib::ThreadPool & th_pool;
     std::future<SMTSolver::Result> future;
+    std::atomic<std::thread::id> thread_id;
+
 public:
 
     Communicator(Channel & ch, PTPLib::synced_stream & ss, const bool & ce, double seed, PTPLib::ThreadPool & th)
@@ -28,9 +30,9 @@ public:
         th_pool(th)
      {}
 
-    bool execute_event(const std::pair<PTPLib::net::Header, std::string> & event);
+    bool execute_event(const std::pair<PTPLib::net::Header, std::string> & event, bool & shouldUpdateSolverAddress);
 
-    bool setStop(std::pair<PTPLib::net::Header, std::string> & header);
+    bool setStop(std::pair<PTPLib::net::Header, std::string> & event);
 
     void communicate_worker();
 

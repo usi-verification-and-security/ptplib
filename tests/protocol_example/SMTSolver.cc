@@ -36,26 +36,37 @@ SMTSolver::Result SMTSolver::do_solve() {
 }
 
 SMTSolver::Result SMTSolver::search(char * smt_lib) {
+    thread_id = std::this_thread::get_id();
     assert (smt_lib);
     stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
                    "[t SEARCH ] -> instance: ", smt_lib);
-    Result result = Result::UNKNOWN;
+    Result solver_result = Result::UNKNOWN;
     while (not channel.shouldStop())
     {
-        result = do_solve();
-        if (result != Result::UNKNOWN) {
+        solver_result = do_solve();
+        if (solver_result != Result::UNKNOWN) {
             std::unique_lock<std::mutex> lk(channel.getMutex());
+            assert([&]() {
+                if (thread_id != std::this_thread::get_id())
+                    throw std::runtime_error(";error: search has inconsistent thread id");
+
+                if (not lk.owns_lock()) {
+                    throw std::runtime_error(";error: search can't take the lock");
+                }
+                return true;
+            }());
             channel.setShallStop();
+            channel.notify_all();
+            lk.unlock();
+
             stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
                            "[t SEARCH ] -> set shall stop");
-            lk.unlock();
-            channel.notify_all();
             break;
         }
     }
     stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
-                   "[t SEARCH ] -> solver exited with ", SMTSolver::resultToString(result));
-    return result;
+                   "[t SEARCH ] -> solver exited with ", SMTSolver::resultToString(solver_result));
+    return solver_result;
 }
 
 void SMTSolver::inject_clauses(std::map<std::string, std::vector<std::pair<std::string, int>>> & pulled_clauses)

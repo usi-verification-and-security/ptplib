@@ -23,6 +23,8 @@
 namespace PTPLib::net {
 
     typedef std::string header_prefix;
+    const header_prefix parameter = "parameter";
+    const header_prefix statistic = "statistic";
 
     class Header : public std::map<std::string, std::string> {
 
@@ -162,14 +164,6 @@ namespace PTPLib::net {
         }
 
     public:
-        static const header_prefix statistic;
-        static const header_prefix parameter;
-
-        Header() {
-            const header_prefix parameter = "parameter";
-            const header_prefix statistic = "statistic";
-        };
-
         uint8_t level() const {
             std::string node;
             try {

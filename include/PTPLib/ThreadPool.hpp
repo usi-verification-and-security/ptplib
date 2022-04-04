@@ -22,7 +22,7 @@
 #include <thread>
 #include <type_traits>
 #include <utility>
-
+#include <cassert>
 
 namespace PTPLib {
 
@@ -244,6 +244,7 @@ namespace PTPLib {
             while (running) {
                 std::pair<std::function<void()>, std::string> task;
                 if (!paused && pop_task(task)) {
+                    assert(task.second != "");
                     stream.println(PTPLib::Color::FG_BrightRed, "task id : ",task.second);
                     task.first();
                     tasks_total--;

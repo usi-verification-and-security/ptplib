@@ -16,6 +16,7 @@ private:
     PTPLib::StoppableWatch & timer;
     bool color_enabled;
     double waiting_duration;
+    std::atomic<std::thread::id> thread_id;
 
 public:
     SMTSolver(Channel & ch, PTPLib::synced_stream & st, PTPLib::StoppableWatch & tm, const bool & ce, double wd )

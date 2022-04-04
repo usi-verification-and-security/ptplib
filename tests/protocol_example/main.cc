@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
 
     double waiting_duration = (argc < 4) ? 0 : std::stod(argv[3]);
     Listener listener(stream, color_enabled, waiting_duration);
+
     int instanceNum = 0;
     while (number_instances != 0)
     {
@@ -72,6 +73,7 @@ int main(int argc, char** argv) {
         }
         listener.notify_reset();
         listener.getPool().wait_for_tasks();
+        assert(not listener.getPool().get_tasks_total());
         {
             std::scoped_lock<std::mutex> _lk(listener.getChannel().getMutex());
             listener.getChannel().resetChannel();

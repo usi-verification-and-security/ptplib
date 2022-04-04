@@ -16,12 +16,14 @@ class Listener {
     int nCommands;
     int instanceNum;
     double waiting_duration;
-
+    std::atomic<std::thread::id> memory_thread_id;
+    std::atomic<std::thread::id> push_thread_id;
+    std::atomic<std::thread::id> pull_thread_id;
 public:
 
     Listener(PTPLib::synced_stream & ss, const bool & ce, double wd)
         :
-        listener_pool("listener_pool", std::thread::hardware_concurrency()-1),
+        listener_pool(ss, "listener_pool", 5),
         communicator(channel, ss, ce, wd, listener_pool),
         stream(ss),
         color_enabled(ce),
