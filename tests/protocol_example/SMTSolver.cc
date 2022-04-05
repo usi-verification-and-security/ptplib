@@ -8,13 +8,13 @@
 #include <random>
 #include <mutex>
 
-bool SMTSolver::learnSomeClauses(std::vector<std::pair<std::string ,int>> & learned_clauses) {
+bool SMTSolver::learnSomeClauses(std::vector<PTPLib::Net::Lemma> & learned_clauses) {
     int rand_number = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(0, 2000);
     if (rand() % 10 == 0)
         return false;
 
     for (int i = 0; i < rand_number ; ++i) {
-        learned_clauses.emplace_back(std::make_pair("assert("+to_string(i)+")",i % 10));
+        learned_clauses.emplace_back(PTPLib::Net::Lemma("assert("+to_string(i)+")",i % 10));
     }
     return not learned_clauses.empty();
 }
@@ -23,7 +23,7 @@ SMTSolver::Result SMTSolver::do_solve() {
 
     int random_n = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(1000, 2000);
     std::this_thread::sleep_for(std::chrono::milliseconds (random_n));
-    std::vector<std::pair<std::string ,int>>  toPublishClauses;
+    std::vector<PTPLib::Net::Lemma>  toPublishClauses;
     if (learnSomeClauses(toPublishClauses))
     {
         std::unique_lock<std::mutex> lk(channel.getMutex());
@@ -81,7 +81,7 @@ SMTSolver::Result SMTSolver::search(char * smt_lib) {
     return solver_result;
 }
 
-void SMTSolver::inject_clauses(std::map<std::string, std::vector<std::pair<std::string, int>>> & pulled_clauses)
+void SMTSolver::inject_clauses(PTPLib::map_solver_clause & pulled_clauses)
 {
     stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
                    "[t COMMUNICATOR ] -> inject pulled clause ");

@@ -82,7 +82,7 @@ void Communicator::communicate_worker()
 }
 
 
-bool Communicator::execute_event(const std::pair<PTPLib::net::Header, std::string> & event, bool & shouldUpdateSolverAddress)
+bool Communicator::execute_event(const PTPLib::smts_event & event, bool & shouldUpdateSolverAddress)
 {
     assert(not event.first.at(PTPLib::Param.COMMAND).empty());
     if (event.first.at(PTPLib::Param.COMMAND) == PTPLib::Command.STOP)
@@ -110,7 +110,7 @@ bool Communicator::execute_event(const std::pair<PTPLib::net::Header, std::strin
 }
 
 
-bool Communicator::setStop(std::pair<PTPLib::net::Header, std::string> & event)
+bool Communicator::setStop(PTPLib::smts_event & event)
 {
     assert(not event.first.at(PTPLib::Param.COMMAND).empty());
     if (event.first.at(PTPLib::Param.COMMAND) != PTPLib::Command.SOLVE) {
