@@ -204,7 +204,6 @@ namespace PTPLib {
         }
 
         void destroy_threads() {
-            const std::scoped_lock lock(queue_mutex);
             for (ui32 i = 0; i < thread_count; i++) {
                 threads[i].join();
             }
@@ -216,7 +215,6 @@ namespace PTPLib {
 
     private:
         void create_threads() {
-            const std::scoped_lock lock(queue_mutex);
             for (ui32 i = 0; i < thread_count; ++i) {
                 threads[i] = std::thread(&ThreadPool::worker, this);
             }
