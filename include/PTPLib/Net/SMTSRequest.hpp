@@ -9,29 +9,17 @@
 #ifndef PTPLIB_NET_LEMMA_H
 #define PTPLIB_NET_LEMMA_H
 
+#include "PTPLib/Header.hpp"
+
 #include <vector>
 #include <sstream>
 
 
 namespace PTPLib::Net {
-    class Lemma {
-    public:
-        friend std::ostream &operator<<(std::ostream &stream, const Lemma &lemma) {
-            return stream << std::to_string(lemma.level) << " " << lemma.clause;
-        }
-
-        friend std::istream &operator>>(std::istream &stream, Lemma &lemma) {
-            stream >> lemma.level;
-            lemma.clause = std::string(std::istreambuf_iterator<char>(stream), {});
-            return stream;
-        }
-
-        Lemma(std::string const & c, const int l) : clause(c), level(l) {}
-
-        Lemma() : Lemma(std::string() , 0) {}
-
-        std::string clause;
-        int level;
+    struct SMTSRequest : public std::pair<PTPLib::net::Header, std::string> {
+        using std::pair<PTPLib::net::Header, std::string>::pair;
+        PTPLib::net::Header & header = this->first;
+        std::string & body = this->second;
     };
 }
 
