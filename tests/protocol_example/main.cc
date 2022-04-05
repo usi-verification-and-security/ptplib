@@ -59,12 +59,18 @@ int main(int argc, char** argv) {
 
             stream.println(color_enabled ? PTPLib::Color::FG_Red : PTPLib::Color::FG_DEFAULT,
                            "[t LISTENER ] -> ", header_payload.first.at(PTPLib::Param.COMMAND)," is received and notified" );
-
             {
-                std::scoped_lock<std::mutex> _lk(listener.getChannel().getMutex());
+                std::unique_lock<std::mutex> _lk(listener.getChannel().getMutex());
+                assert([&]() {
+                    if (not _lk.owns_lock()) {
+                        throw Exception(__FILE__, __LINE__, "listener can't take the lock");
+                    }
+                    return true;
+                }());
                 if (header_payload.first[PTPLib::Param.COMMAND] == PTPLib::Command.STOP) {
                     reset = true;
-                    listener.getChannel().clear_queries();
+                    if (not listener.getChannel().isEmpty_query())
+                        listener.getChannel().clear_queries();
                 }
                 listener.queue_event(std::move(header_payload));
             }

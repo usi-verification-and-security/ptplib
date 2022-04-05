@@ -25,7 +25,6 @@ class Channel {
     using td_t = const std::chrono::duration<double>;
     std::mutex mutex;
     std::condition_variable cv;
-    std::condition_variable cv_isStopping;
     typedef std::queue<std::pair<PTPLib::net::Header, std::string>> q_pair_header_str;
     q_pair_header_str queries;
     PTPLib::net::Header current_header;
@@ -91,14 +90,14 @@ public:
 
     void clear_queries() {
         q_pair_header_str empty_q;
-        std::swap(get_queris(), empty_q);
+        std::swap(queries, empty_q);
     }
 
     size_t size_query() const { return queries.size(); }
 
     bool isEmpty_query() const { return queries.empty(); }
 
-    q_pair_header_str & get_queris() { return queries; }
+    q_pair_header_str get_queris() const & { return queries; }
 
     std::pair<PTPLib::net::Header, std::string> pop_front_query() {
         std::pair<PTPLib::net::Header, std::string> tmp_p(std::move(queries.front()));
@@ -113,26 +112,22 @@ public:
         queries.push(std::move(hd));
     }
 
-    void set_current_header(PTPLib::net::Header hd) {
+    void set_current_header(PTPLib::net::Header & hd) {
         assert((not hd.at(PTPLib::Param.NODE).empty()) and (not hd.at(PTPLib::Param.NAME).empty()));
         current_header = hd.copy(hd.keys());
     }
 
-    PTPLib::net::Header  get_current_header()  { return current_header; }
+    PTPLib::net::Header & get_current_header()   { return current_header; }
 
     void clear_current_header() { current_header.clear(); }
 
     size_t size() const { return m_learned_clauses->size(); }
 
-    auto cbegin() const { return m_learned_clauses->cbegin(); }
-
-    auto cend() const { return m_learned_clauses->cend(); }
-
     auto begin() const { return m_learned_clauses->begin(); }
 
     auto end() const { return m_learned_clauses->end(); }
 
-    void notify_one() { cv_isStopping.notify_one(); }
+    void notify_one() { cv.notify_one(); }
 
     void notify_all() { cv.notify_all(); }
 
@@ -140,7 +135,7 @@ public:
 
     void clear_pulled_clauses() { m_pulled_clauses->clear(); }
 
-    bool empty() const { return (m_learned_clauses->empty()); }
+    bool empty_learned_clauses() const { return (m_learned_clauses->empty()); }
 
     bool shouldReset() const { return reset; }
 
@@ -180,28 +175,24 @@ public:
 
     void clearApiMode() { apiMode = false; }
 
-    bool wait_for(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
-        return cv.wait_for(lock, timeout_duration, [&] { return (shouldReset()); });
+    bool wait_for_reset(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
+        return cv.wait_for(lock, timeout_duration, [&] {
+            return shouldReset();
+        });
     }
 
-    bool wait_for_event(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
-        return cv.wait_for(lock, timeout_duration, [&] { return (shouldReset() or not isEmpty_query()); });
-    }
-
-    bool wait_for_solver(std::unique_lock<std::mutex> & lock, const td_t & timeout_duration) {
-        return  cv_isStopping.wait_for(lock, timeout_duration, [&] { return shallStop(); });
-    }
-
-    void wait(std::unique_lock<std::mutex> & lock) {
-        cv.wait(lock, [&] { return (shouldReset() or not isEmpty_query() or shallStop()); });
+    void wait_event_solver_reset(std::unique_lock<std::mutex> & lock) {
+        cv.wait(lock, [&] {
+            return (shouldReset() or shallStop() or not isEmpty_query());
+        });
     }
 
     void resetChannel() {
-
         clear_pulled_clauses();
         clear_learned_clauses();
         clear_current_header();
-        clear_queries();
+        if (not isEmpty_query())
+            clear_queries();
         clearShouldStop();
         clearShallStop();
         clearReset();

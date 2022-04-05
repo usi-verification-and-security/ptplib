@@ -10,7 +10,7 @@
 
 bool SMTSolver::learnSomeClauses(std::vector<std::pair<std::string ,int>> & learned_clauses) {
     int rand_number = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(0, 2000);
-    if (SMTSolver::generate_rand(1, 2000) % 30 == 0)
+    if (rand() % 10 == 0)
         return false;
 
     for (int i = 0; i < rand_number ; ++i) {
@@ -68,7 +68,7 @@ SMTSolver::Result SMTSolver::search(char * smt_lib) {
                 return true;
             }());
             channel.setShallStop();
-            channel.notify_one();
+            channel.notify_all();
             lk.unlock();
 
             stream.println(color_enabled ? PTPLib::Color::FG_Green : PTPLib::Color::FG_DEFAULT,
