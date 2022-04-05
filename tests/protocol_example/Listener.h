@@ -1,13 +1,13 @@
 #pragma once
 #include "Communicator.cc"
 
-#include <PTPLib/Channel.hpp>
+#include <PTPLib/Net/Channel.hpp>
 #include <PTPLib/Header.hpp>
 #include <PTPLib/PartitionConstant.hpp>
 #include <PTPLib/ThreadPool.hpp>
 
 class Listener {
-    PTPLib::Channel channel;
+    PTPLib::Net::Channel channel;
     PTPLib::ThreadPool listener_pool;
     Communicator communicator;
     PTPLib::synced_stream & stream;
@@ -41,9 +41,9 @@ public:
 
     void push_to_pool(PTPLib::TASK tname, double seed = 0, double td_min = 0, double td_max = 0);
 
-    PTPLib::smts_event read_event(int counter, int solve_time);
+    PTPLib::Net::smts_event read_event(int counter, int solve_time);
 
-    void queue_event(PTPLib::smts_event && header_payload);
+    void queue_event(PTPLib::Net::smts_event && header_payload);
 
     void pull_clause_worker(double seed, double n_min, double n_max);
 
@@ -51,11 +51,11 @@ public:
 
     bool read_lemma(std::vector<PTPLib::Net::Lemma> & lemmas, PTPLib::net::Header & header);
 
-    bool write_lemma(std::unique_ptr<PTPLib::map_solver_clause> const & lemmas, PTPLib::net::Header & header);
+    bool write_lemma(std::unique_ptr<PTPLib::Net::map_solver_clause> const & lemmas, PTPLib::net::Header & header);
 
     void memory_checker();
 
-    PTPLib::Channel & getChannel() { return channel;};
+    PTPLib::Net::Channel & getChannel() { return channel;};
 
     PTPLib::ThreadPool & getPool() { return listener_pool; }
 };

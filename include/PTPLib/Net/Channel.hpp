@@ -21,7 +21,7 @@
 #include <queue>
 #include <cassert>
 
-namespace PTPLib {
+namespace PTPLib::Net {
 
     using smts_event = std::pair<PTPLib::net::Header, std::string>;
     using queue_event = std::queue<smts_event>;

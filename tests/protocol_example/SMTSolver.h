@@ -1,5 +1,5 @@
 #pragma once
-#include <PTPLib/Channel.hpp>
+#include <PTPLib/Net/Channel.hpp>
 #include <PTPLib/Printer.hpp>
 #include <PTPLib/Header.hpp>
 
@@ -8,7 +8,7 @@ public:
     enum class Result { SAT, UNSAT, UNKNOWN };
 
 private:
-    PTPLib::Channel & channel;
+    PTPLib::Net::Channel & channel;
     bool learnSomeClauses(std::vector<PTPLib::Net::Lemma> & learned_clauses);
     Result do_solve();
     Result result;
@@ -19,7 +19,7 @@ private:
     std::atomic<std::thread::id> thread_id;
 
 public:
-    SMTSolver(PTPLib::Channel & ch, PTPLib::synced_stream & st, PTPLib::StoppableWatch & tm, const bool & ce, double wd )
+    SMTSolver(PTPLib::Net::Channel & ch, PTPLib::synced_stream & st, PTPLib::StoppableWatch & tm, const bool & ce, double wd )
     :
             channel (ch),
             result (Result::UNKNOWN),
@@ -33,13 +33,13 @@ public:
 
     Result   getResult()  const    { return result; }
 
-    PTPLib::Channel& getChannel() const    { return channel; }
+    PTPLib::Net::Channel& getChannel() const    { return channel; }
 
     static int generate_rand(int min, int max);
 
     SMTSolver::Result search(char * smt_lib);
 
-    void inject_clauses(PTPLib::map_solver_clause & pulled_clauses);
+    void inject_clauses(PTPLib::Net::map_solver_clause & pulled_clauses);
 
     void initialise_logic();
 

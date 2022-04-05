@@ -1,5 +1,5 @@
 #pragma once
-#include <PTPLib/Channel.hpp>
+#include <PTPLib/Net/Channel.hpp>
 #include <PTPLib/Header.hpp>
 #include <PTPLib/PartitionConstant.hpp>
 #include <PTPLib/ThreadPool.hpp>
@@ -10,7 +10,7 @@
 #include "SMTSolver.cc"
 
 class Communicator {
-    PTPLib::Channel & channel;
+    PTPLib::Net::Channel & channel;
     SMTSolver solver;
     PTPLib::synced_stream & stream;
     PTPLib::StoppableWatch timer;
@@ -21,7 +21,7 @@ class Communicator {
 
 public:
 
-    Communicator(PTPLib::Channel & ch, PTPLib::synced_stream & ss, const bool & ce, double seed, PTPLib::ThreadPool & th)
+    Communicator(PTPLib::Net::Channel & ch, PTPLib::synced_stream & ss, const bool & ce, double seed, PTPLib::ThreadPool & th)
         :
         channel(ch),
         solver(ch, ss, timer, ce, seed),
@@ -30,12 +30,12 @@ public:
         th_pool(th)
      {}
 
-    bool execute_event(const PTPLib::smts_event & event, bool & shouldUpdateSolverAddress);
+    bool execute_event(const PTPLib::Net::smts_event & event, bool & shouldUpdateSolverAddress);
 
-    bool setStop(PTPLib::smts_event & event);
+    bool setStop(PTPLib::Net::smts_event & event);
 
     void communicate_worker();
 
-    PTPLib::Channel & getChannel() { return channel;};
+    PTPLib::Net::Channel & getChannel() { return channel;};
 
 };

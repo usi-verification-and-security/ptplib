@@ -88,13 +88,13 @@ void Listener::notify_reset()
     _lk.unlock();
 }
 
-void Listener::queue_event(PTPLib::smts_event && header_payload)
+void Listener::queue_event(PTPLib::Net::smts_event && header_payload)
 {
     getChannel().push_back_query(std::move(header_payload));
     getChannel().notify_all();
 }
 
-PTPLib::smts_event Listener::read_event(int counter, int time_passed)
+PTPLib::Net::smts_event Listener::read_event(int counter, int time_passed)
 {
     std::string payload;
     int sleep_duration = 0;
@@ -113,13 +113,13 @@ PTPLib::smts_event Listener::read_event(int counter, int time_passed)
     header.emplace(PTPLib::Param.QUERY, "(check-sat)");
     if (time_passed > nCommands * 5) {
         header.emplace(PTPLib::Param.COMMAND, PTPLib::Command.STOP);
-        return PTPLib::smts_event (header, payload);
+        return PTPLib::Net::smts_event (header, payload);
     }
     else if (counter == nCommands) {
         if (not waiting_duration)
             std::this_thread::sleep_for(std::chrono::seconds ((nCommands * 10) - time_passed));
         header.emplace(PTPLib::Param.COMMAND, PTPLib::Command.STOP);
-        return PTPLib::smts_event (header, payload);
+        return PTPLib::Net::smts_event (header, payload);
     }
     else if (counter == 1) {
         header.emplace(PTPLib::Param.COMMAND, PTPLib::Command.SOLVE);
@@ -137,7 +137,7 @@ PTPLib::smts_event Listener::read_event(int counter, int time_passed)
         header.emplace(PTPLib::Param.PARTITIONS, "2");
     }
 
-    return PTPLib::smts_event(header, payload);
+    return PTPLib::Net::smts_event(header, payload);
 }
 
 void Listener::push_clause_worker(double seed, double min, double max)
@@ -146,7 +146,7 @@ void Listener::push_clause_worker(double seed, double min, double max)
     int push_duration = (waiting_duration ? waiting_duration*(100) :  min + ( std::fmod(seed, ( max - min + 1 ))));
     stream.println(color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT,
                    "[t PUSH -> timout : ", push_duration," ms");
-    PTPLib::time_duration wakeupAt = std::chrono::milliseconds (push_duration);
+    PTPLib::Net::time_duration wakeupAt = std::chrono::milliseconds (push_duration);
     while (true) {
         PTPLib::PrintStopWatch psw("[t PUSH ] -> measured wait and write duration: ", stream,
                                    color_enabled ? PTPLib::Color::FG_Blue : PTPLib::Color::FG_DEFAULT);
@@ -200,7 +200,7 @@ void Listener::pull_clause_worker(double seed, double min, double max)
     int pull_duration = (waiting_duration ? waiting_duration*(200) : min + ( std::fmod(seed, ( max - min + 1 ))));
     stream.println(color_enabled ? PTPLib::Color::FG_Magenta : PTPLib::Color::FG_DEFAULT,
                    "[t PULL -> timout : ", pull_duration," ms");
-    PTPLib::time_duration wakeupAt = std::chrono::milliseconds (pull_duration);
+    PTPLib::Net::time_duration wakeupAt = std::chrono::milliseconds (pull_duration);
     while (true) {
 
         PTPLib::PrintStopWatch psw("[t PULL ] -> measured wait and read duration: ", stream,
@@ -247,7 +247,7 @@ void Listener::pull_clause_worker(double seed, double min, double max)
                         channel.insert_pulled_clause(std::move(lemmas));
                         header.erase(PTPLib::Param.COMMAND);
                         header[PTPLib::Param.COMMAND] = PTPLib::Command.CLAUSEINJECTION;
-                        queue_event(PTPLib::smts_event (header, PTPLib::Command.CLAUSEINJECTION));
+                        queue_event(PTPLib::Net::smts_event (header, PTPLib::Command.CLAUSEINJECTION));
                         _lk.unlock();
                     }
                     stream.println(color_enabled ? PTPLib::Color::FG_Magenta : PTPLib::Color::FG_DEFAULT,

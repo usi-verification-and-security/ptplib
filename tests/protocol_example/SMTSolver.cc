@@ -81,7 +81,7 @@ SMTSolver::Result SMTSolver::search(char * smt_lib) {
     return solver_result;
 }
 
-void SMTSolver::inject_clauses(PTPLib::map_solver_clause & pulled_clauses)
+void SMTSolver::inject_clauses(PTPLib::Net::map_solver_clause & pulled_clauses)
 {
     stream.println(color_enabled ? PTPLib::Color::FG_Cyan : PTPLib::Color::FG_DEFAULT,
                    "[t COMMUNICATOR ] -> inject pulled clause ");
