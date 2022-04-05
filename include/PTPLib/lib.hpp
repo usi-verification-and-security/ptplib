@@ -141,4 +141,27 @@ bool to_bool(const std::string & str)
     return (str =="true" or str =="TRUE") ? true : false;
 }
 
+std::string get_task_name(int index){
+    auto input = static_cast<PTPLib::TASK>(index);
+    switch (input) {
+        case PTPLib::TASK::MEMORYCHECK:
+            return PTPLib::TASK_STR[PTPLib::TASK::MEMORYCHECK];
+
+        case PTPLib::TASK::COMMUNICATION:
+            return PTPLib::TASK_STR[PTPLib::TASK::COMMUNICATION];
+
+        case PTPLib::TASK::CLAUSEPUSH:
+            return PTPLib::TASK_STR[PTPLib::TASK::CLAUSEPUSH];
+
+        case PTPLib::TASK::CLAUSEPULL:
+            return PTPLib::TASK_STR[PTPLib::TASK::CLAUSEPULL];
+
+        case PTPLib::TASK::SOLVER:
+            return PTPLib::TASK_STR[PTPLib::TASK::SOLVER];
+
+        case PTPLib::TASK::CLAUSELEARN:
+            return PTPLib::TASK_STR[PTPLib::TASK::CLAUSELEARN];
+    }
+    return "";
+}
 #endif // PTPLIB_LIB_HPP
