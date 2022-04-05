@@ -35,9 +35,17 @@ make -j4
 
 #protocol example
 cd ../../protocol_example/ && rm -rf build && mkdir -p build && cd build
+
+if [ x"${PROTOCOL_EXAMPLE}" == x"yes" ]; then
+    ASAN_OPTIONS=detect_leaks=1
+    temp="${SFLAGS}"
+else
+    temp="${FLAGS}"
+fi
+
 cmake \
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
-    -DCMAKE_CXX_FLAGS="${FLAGS}" \
+    -DCMAKE_CXX_FLAGS="${temp}" \
     ..
 
 make -j4

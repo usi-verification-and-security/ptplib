@@ -41,7 +41,9 @@ jobs:
                 environment:
                     CMAKE_BUILD_TYPE: Debug
                     FLAGS: -Wall -Wextra -Werror -fsanitize=signed-integer-overflow,address,undefined
+                    SFLAGS: -Wall -Wextra -Werror -fsanitize=signed-integer-overflow,thread,undefined
                     INSTALL_WITH_SUDO: "yes"
+                    PROTOCOL_EXAMPLE: "yes"
             - run:
                 name: Release build llvm
                 command: ./ci/run_ci_commands.sh
