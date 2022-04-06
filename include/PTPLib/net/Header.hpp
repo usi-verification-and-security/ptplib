@@ -6,10 +6,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef PTPLIB_HEADER_HPP
-#define PTPLIB_HEADER_HPP
+#ifndef PTPLIB_NET_HEADER_HPP
+#define PTPLIB_NET_HEADER_HPP
 
-#include "PTPLib/lib.hpp"
+#include "PTPLib/common/Lib.hpp"
 
 #include <array>
 #include <iomanip>
@@ -46,9 +46,9 @@ namespace PTPLib::net {
                         break;
                     if (c == '"') {
                         if (!stream.get(c))
-                            throw Exception(__FILE__, __LINE__, "unexpected end");
+                            throw PTPLib::common::Exception(__FILE__, __LINE__, "unexpected end");
                     } else
-                        throw Exception(__FILE__, __LINE__, "double quotes expected");
+                        throw PTPLib::common::Exception(__FILE__, __LINE__, "double quotes expected");
                 }
                 if (!escape) {
                     switch (c) {
@@ -60,7 +60,7 @@ namespace PTPLib::net {
                             }
                             if (s == &pair.first) {
                                 if (c != ':')
-                                    throw Exception(__FILE__, __LINE__, "colon expected");
+                                    throw PTPLib::common::Exception(__FILE__, __LINE__, "colon expected");
                                 s = &pair.second;
                                 continue;
                             } else {
@@ -68,7 +68,7 @@ namespace PTPLib::net {
                                 if (c == '}')
                                     stream.unget();
                                 else if (c != ',')
-                                    throw Exception(__FILE__, __LINE__, "comma expected");
+                                    throw PTPLib::common::Exception(__FILE__, __LINE__, "comma expected");
                                 pair.first.clear();
                                 pair.second.clear();
                                 s = &pair.first;
@@ -76,7 +76,7 @@ namespace PTPLib::net {
                             break;
                         default:
                             if ('\x00' <= c && c <= '\x1f')
-                                throw Exception(__FILE__, __LINE__, "control char not allowed");
+                                throw PTPLib::common::Exception(__FILE__, __LINE__, "control char not allowed");
                             *s += c;
                     }
                 } else {
@@ -94,13 +94,13 @@ namespace PTPLib::net {
                             break;
                         case 'u':
                             if (!(stream.get(c) && c == '0' && stream.get(c) && c == '0'))
-                                throw Exception(__FILE__, __LINE__, "unicode not supported");
+                                throw PTPLib::common::Exception(__FILE__, __LINE__, "unicode not supported");
                             for (uint8_t _ = 0; _ < 2; _++) {
                                 if (!stream.get(c))
-                                    throw Exception(__FILE__, __LINE__, "unexpected end");
+                                    throw PTPLib::common::Exception(__FILE__, __LINE__, "unexpected end");
                                 c = (char) toupper(c);
                                 if ((c < '0') || (c > 'F') || ((c > '9') && (c < 'A')))
-                                    throw Exception(__FILE__, __LINE__, "bad hex string");
+                                    throw PTPLib::common::Exception(__FILE__, __LINE__, "bad hex string");
                                 c -= '0';
                                 if (c > 9)
                                     c -= 7;
@@ -109,7 +109,7 @@ namespace PTPLib::net {
                             *s += i;
                             break;
                         default:
-                            throw Exception(__FILE__, __LINE__, "bad char after escape");
+                            throw PTPLib::common::Exception(__FILE__, __LINE__, "bad char after escape");
                     }
                 }
             }
@@ -160,18 +160,18 @@ namespace PTPLib::net {
                 }
                 pairs.push_back(ss.str());
             }
-            return ::join(stream << "{", ",", pairs) << "}";
+            return join(stream << "{", ",", pairs) << "}";
         }
 
     public:
         uint8_t level() const {
             std::string node;
             try {
-                node = this->at(PTPLib::Param.NODE);
+                node = this->at(PTPLib::common::Param.NODE);
             } catch (std::out_of_range &) {
             }
-            node % std::make_pair("[", "") % std::make_pair("]", "") % std::make_pair(" ", "");
-            auto v = ::split(node, ",");
+            node  % std::make_pair("[", "") % std::make_pair("]", "") % std::make_pair(" ", "");
+            auto v = split(node, ",");
             return (uint8_t)(v.size() / 2);
         }
 
@@ -232,4 +232,4 @@ namespace PTPLib::net {
     
 }
 
-#endif // PTPLIB_HEADER_HPP
+#endif // PTPLIB_NET_HEADER_HPP

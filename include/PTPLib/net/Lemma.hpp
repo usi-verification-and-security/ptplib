@@ -13,7 +13,7 @@
 #include <sstream>
 
 
-namespace PTPLib::Net {
+namespace PTPLib::net {
     class Lemma {
     public:
         friend std::ostream &operator<<(std::ostream &stream, const Lemma &lemma) {

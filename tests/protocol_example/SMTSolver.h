@@ -1,25 +1,25 @@
 #pragma once
-#include <PTPLib/Net/Channel.hpp>
-#include <PTPLib/Printer.hpp>
-#include <PTPLib/Header.hpp>
+#include <PTPLib/net/Channel.hpp>
+#include <PTPLib/common/Printer.hpp>
+#include <PTPLib/net/Header.hpp>
 
 class SMTSolver {
 public:
     enum class Result { SAT, UNSAT, UNKNOWN };
 
 private:
-    PTPLib::Net::Channel & channel;
-    bool learnSomeClauses(std::vector<PTPLib::Net::Lemma> & learned_clauses);
+    PTPLib::net::Channel & channel;
+    bool learnSomeClauses(std::vector<PTPLib::net::Lemma> & learned_clauses);
     Result do_solve();
     Result result;
-    PTPLib::synced_stream & stream;
-    PTPLib::StoppableWatch & timer;
+    PTPLib::common::synced_stream & stream;
+    PTPLib::common::StoppableWatch & timer;
     bool color_enabled;
     double waiting_duration;
     std::atomic<std::thread::id> thread_id;
 
 public:
-    SMTSolver(PTPLib::Net::Channel & ch, PTPLib::synced_stream & st, PTPLib::StoppableWatch & tm, const bool & ce, double wd )
+    SMTSolver(PTPLib::net::Channel & ch, PTPLib::common::synced_stream & st, PTPLib::common::StoppableWatch & tm, const bool & ce, double wd )
     :
             channel (ch),
             result (Result::UNKNOWN),
@@ -33,13 +33,13 @@ public:
 
     Result   getResult()  const    { return result; }
 
-    PTPLib::Net::Channel& getChannel() const    { return channel; }
+    PTPLib::net::Channel& getChannel() const    { return channel; }
 
     static int generate_rand(int min, int max);
 
     SMTSolver::Result search(char * smt_lib);
 
-    void inject_clauses(PTPLib::Net::map_solver_clause & pulled_clauses);
+    void inject_clauses(PTPLib::net::map_solver_clause & pulled_clauses);
 
     void initialise_logic();
 

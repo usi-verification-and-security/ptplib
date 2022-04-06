@@ -6,12 +6,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef PTPLIB_MEMORY_HPP
-#define PTPLIB_MEMORY_HPP
+#ifndef PTPLIB_COMMON_MEMORY_HPP
+#define PTPLIB_COMMON_MEMORY_HPP
 
 #include "Exception.hpp"
 
-namespace PTPLib {
+namespace PTPLib::common {
 
     #if defined(__unix__) || defined(__linux__) || defined(__APPLE__)
 
@@ -41,4 +41,4 @@ namespace PTPLib {
         #endif
     }
 }
-#endif // PTPLIB_MEMORY_HPP
+#endif // PTPLIB_COMMON_MEMORY_HPP

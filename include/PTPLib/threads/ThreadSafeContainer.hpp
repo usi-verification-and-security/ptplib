@@ -1,11 +1,11 @@
 #pragma once
-#ifndef PTPLIB_SAFE_PTR_HPP
-#define PTPLIB_SAFE_PTR_HPP
+#ifndef PTPLIB_THREADS_SAFE_PTR_HPP
+#define PTPLIB_THREADS_SAFE_PTR_HPP
 
 #include <mutex>
 #include <thread>
 
-namespace PTPLib {
+namespace PTPLib::threads {
 
     template<typename T, typename mutex_t = std::recursive_mutex, typename x_lock_t = std::unique_lock<mutex_t>,
             typename s_lock_t = std::unique_lock<mutex_t >>
@@ -141,4 +141,4 @@ namespace PTPLib {
     using lock_timed_any_infinity = lock_timed_any<lock_count_t::lock_infinity>;
 }
 
-#endif // PTPLIB_SAFE_PTR_HPP
+#endif // PTPLIB_THREADS_SAFE_PTR_HPP

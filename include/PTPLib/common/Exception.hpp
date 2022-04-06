@@ -6,24 +6,25 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef PTPLIB_EXCEPTION_HPP
-#define PTPLIB_EXCEPTION_HPP
+#ifndef PTPLIB_COMMON_EXCEPTION_HPP
+#define PTPLIB_COMMON_EXCEPTION_HPP
 
 #include <exception>
 #include <iostream>
 
-class Exception : public std::exception {
-private:
-    const std::string msg;
+namespace PTPLib::common {
+    class Exception : public std::exception {
+    private:
+        const std::string msg;
 
-public:
-    explicit Exception(const std::string & message) :
-            msg(message) {}
+    public:
+        explicit Exception(const std::string & message) :
+                msg(message) {}
 
-    explicit Exception(const char * file, unsigned line, const std::string & message) :
-            msg(message + " at " + file + ":" + std::to_string(line)) {}
+        explicit Exception(const char * file, unsigned line, const std::string & message) :
+                msg(message + " at " + file + ":" + std::to_string(line)) {}
 
-    const char * what() const throw() { return this->msg.c_str(); }
-};
-
-#endif // PTPLIB_EXCEPTION_HPP
+        const char * what() const throw() { return this->msg.c_str(); }
+    };
+}
+#endif // PTPLIB_COMMON_EXCEPTION_HPP

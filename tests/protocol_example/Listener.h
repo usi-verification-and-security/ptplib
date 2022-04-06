@@ -1,17 +1,17 @@
 #pragma once
 #include "Communicator.cc"
 
-#include <PTPLib/Net/Channel.hpp>
-#include <PTPLib/Header.hpp>
-#include <PTPLib/PartitionConstant.hpp>
-#include <PTPLib/ThreadPool.hpp>
+#include <PTPLib/net/Channel.hpp>
+#include <PTPLib/net/Header.hpp>
+#include <PTPLib/common/PartitionConstant.hpp>
+#include <PTPLib/threads/ThreadPool.hpp>
 
 class Listener {
-    PTPLib::Net::Channel channel;
-    PTPLib::ThreadPool listener_pool;
+    PTPLib::net::Channel channel;
+    PTPLib::threads::ThreadPool listener_pool;
     Communicator communicator;
-    PTPLib::synced_stream & stream;
-    PTPLib::StoppableWatch timer;
+    PTPLib::common::synced_stream & stream;
+    PTPLib::common::StoppableWatch timer;
     bool color_enabled;
     int nCommands;
     int instanceNum;
@@ -21,7 +21,7 @@ class Listener {
     std::atomic<std::thread::id> pull_thread_id;
 public:
 
-    Listener(PTPLib::synced_stream & ss, const bool & ce, double wd)
+    Listener(PTPLib::common::synced_stream & ss, const bool & ce, double wd)
         :
         listener_pool(ss, "listener_pool", std::thread::hardware_concurrency() - 1),
         communicator(channel, ss, ce, wd, listener_pool),
@@ -37,25 +37,25 @@ public:
 
     void notify_reset();
 
-    void worker(PTPLib::TASK tname, double seed, double td_min, double td_max);
+    void worker(PTPLib::common::TASK tname, double seed, double td_min, double td_max);
 
-    void push_to_pool(PTPLib::TASK tname, double seed = 0, double td_min = 0, double td_max = 0);
+    void push_to_pool(PTPLib::common::TASK tname, double seed = 0, double td_min = 0, double td_max = 0);
 
-    PTPLib::Net::smts_event read_event(int counter, int solve_time);
+    PTPLib::net::smts_event read_event(int counter, int solve_time);
 
-    void queue_event(PTPLib::Net::smts_event && header_payload);
+    void queue_event(PTPLib::net::smts_event && header_payload);
 
     void pull_clause_worker(double seed, double n_min, double n_max);
 
     void push_clause_worker(double seed, double n_min, double n_max);
 
-    bool read_lemma(std::vector<PTPLib::Net::Lemma> & lemmas, PTPLib::net::Header & header);
+    bool read_lemma(std::vector<PTPLib::net::Lemma> & lemmas, PTPLib::net::Header & header);
 
-    bool write_lemma(std::unique_ptr<PTPLib::Net::map_solver_clause> const & lemmas, PTPLib::net::Header & header);
+    bool write_lemma(std::unique_ptr<PTPLib::net::map_solver_clause> const & lemmas, PTPLib::net::Header & header);
 
     void memory_checker();
 
-    PTPLib::Net::Channel & getChannel() { return channel;};
+    PTPLib::net::Channel & getChannel() { return channel;};
 
-    PTPLib::ThreadPool & getPool() { return listener_pool; }
+    PTPLib::threads::ThreadPool & getPool() { return listener_pool; }
 };

@@ -5,12 +5,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef PTPLIB_PARTITION_CONSTANT_HPP
-#define PTPLIB_PARTITION_CONSTANT_HPP
+#ifndef PTPLIB_COMMON_PARTITIONCONSTANT_HPP
+#define PTPLIB_COMMON_PARTITIONCONSTANT_HPP
 
 #include <iostream>
 
-namespace PTPLib
+namespace PTPLib::common
 {
     static struct
     {
@@ -47,4 +47,4 @@ namespace PTPLib
     static const std::string TASK_STR[] = { "MEMORYCHECK", "COMMUNICATION", "CLAUSEPUSH", "CLAUSEPULL", "SOLVER", "CLAUSELEARN" };
 }
 
-#endif // PTPLIB_PARTITION_CONSTANT_HPP
+#endif // PTPLIB_COMMON_PARTITIONCONSTANT_HPP

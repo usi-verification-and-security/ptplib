@@ -5,14 +5,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef PTPLIB_TIMER_HPP
-#define PTPLIB_TIMER_HPP
+#ifndef PTPLIB_COMMON_TIMER_HPP
+#define PTPLIB_COMMON_TIMER_HPP
 
 #include <string>
 #include <iostream>
 #include <chrono>
 
-namespace PTPLib {
+namespace PTPLib::common {
 
 // A c++ wrapper for manual time checking
     class StoppableWatch {
@@ -99,4 +99,4 @@ namespace PTPLib {
         std::chrono::duration<long double> accumulated_;
     };
 }
-#endif // PTPLIB_TIMER_HPP
+#endif // PTPLIB_COMMON_TIMER_HPP

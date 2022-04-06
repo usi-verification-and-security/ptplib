@@ -5,16 +5,16 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef PTPLIB_PRINTER_HPP
-#define PTPLIB_PRINTER_HPP
+#ifndef PTPLIB_COMMON_PRINTER_HPP
+#define PTPLIB_COMMON_PRINTER_HPP
 
-#include "PTPLib/Timer.hpp"
+#include "Timer.hpp"
 #include <mutex>
 #include <cstring>
 
-namespace PTPLib {
+namespace PTPLib::common {
 
-    namespace Color
+    struct Color
     {
         enum Code {
             FG_DEFAULT = 39,
@@ -51,7 +51,7 @@ namespace PTPLib {
             FG_BrightWhite = 97,
             BG_BrightWhite = 107
         };
-    }
+    };
 
     class synced_stream {
     public:
@@ -97,4 +97,4 @@ namespace PTPLib {
         }
     };
 }
-#endif // PTPLIB_PRINTER_HPP
+#endif // PTPLIB_COMMON_PRINTER_HPP

@@ -15,10 +15,9 @@ include(GNUInstallDirs)
 add_library(PTPLib INTERFACE)
 
 target_include_directories(PTPLib INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
 target_compile_features(PTPLib INTERFACE cxx_std_17)
 
 install(TARGETS PTPLib
@@ -54,4 +53,3 @@ install(FILES
 )
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/PTPLib DESTINATION include)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/PTPLib/Net DESTINATION include)

@@ -5,11 +5,11 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef PTPLIB_CHANNEL_HPP
-#define PTPLIB_CHANNEL_HPP
+#ifndef PTPLIB_NET_CHANNEL_HPP
+#define PTPLIB_NET_CHANNEL_HPP
 
-#include "PTPLib/Header.hpp"
-#include "PTPLib/Net/Lemma.hpp"
+#include "Header.hpp"
+#include "Lemma.hpp"
 
 #include <vector>
 #include <mutex>
@@ -21,11 +21,11 @@
 #include <queue>
 #include <cassert>
 
-namespace PTPLib::Net {
+namespace PTPLib::net {
 
     using smts_event = std::pair<PTPLib::net::Header, std::string>;
     using queue_event = std::queue<smts_event>;
-    using map_solver_clause = std::map<std::string, std::vector<PTPLib::Net::Lemma>>;
+    using map_solver_clause = std::map<std::string, std::vector<PTPLib::net::Lemma>>;
     using time_duration = std::chrono::duration<double>;
 
     class Channel {
@@ -49,34 +49,35 @@ namespace PTPLib::Net {
 
     public:
         Channel()
-                :
-                requestStop(false),
-                reset(false),
-                isStopping(false),
-                clauseShareMode(false),
-                isFirstTime(false),
-                clauseLearnDuration(4000),
-                apiMode(false) {
+        :
+            requestStop(false),
+            reset(false),
+            isStopping(false),
+            clauseShareMode(false),
+            isFirstTime(false),
+            clauseLearnDuration(4000),
+            apiMode(false)
+        {
             m_learned_clauses = std::make_unique<map_solver_clause>();
             m_pulled_clauses = std::make_unique<map_solver_clause>();
         }
 
         std::mutex & getMutex() { return mutex; }
 
-        void insert_learned_clause(std::vector<PTPLib::Net::Lemma> && toPublish_clauses) {
-            assert(not get_current_header().at(PTPLib::Param.NODE).empty());
-            (*m_learned_clauses)[get_current_header().at(PTPLib::Param.NODE)].insert
+        void insert_learned_clause(std::vector<PTPLib::net::Lemma> && toPublish_clauses) {
+            assert(not get_current_header().at(PTPLib::common::Param.NODE).empty());
+            (*m_learned_clauses)[get_current_header().at(PTPLib::common::Param.NODE)].insert
                     (
-                            std::end((*m_learned_clauses)[get_current_header().at(PTPLib::Param.NODE)]),
+                            std::end((*m_learned_clauses)[get_current_header().at(PTPLib::common::Param.NODE)]),
                             std::begin(toPublish_clauses), std::end(toPublish_clauses)
                     );
         }
 
-        void insert_pulled_clause(std::vector<PTPLib::Net::Lemma> && toInject_clauses) {
-            assert(not get_current_header().at(PTPLib::Param.NODE).empty());
-            (*m_pulled_clauses)[get_current_header().at(PTPLib::Param.NODE)].insert
+        void insert_pulled_clause(std::vector<PTPLib::net::Lemma> && toInject_clauses) {
+            assert(not get_current_header().at(PTPLib::common::Param.NODE).empty());
+            (*m_pulled_clauses)[get_current_header().at(PTPLib::common::Param.NODE)].insert
                     (
-                            std::end((*m_pulled_clauses)[get_current_header().at(PTPLib::Param.NODE)]),
+                            std::end((*m_pulled_clauses)[get_current_header().at(PTPLib::common::Param.NODE)]),
                             std::begin(toInject_clauses), std::end(toInject_clauses)
                     );
         }
@@ -113,12 +114,12 @@ namespace PTPLib::Net {
         PTPLib::net::Header & front_queries() { return queries.front().first; }
 
         void push_back_query(smts_event && hd) {
-            assert((not hd.first.at(PTPLib::Param.NODE).empty()) and (not hd.first.at(PTPLib::Param.NAME).empty()));
+            assert((not hd.first.at(PTPLib::common::Param.NODE).empty()) and (not hd.first.at(PTPLib::common::Param.NAME).empty()));
             queries.push(std::move(hd));
         }
 
         void set_current_header(PTPLib::net::Header & hd) {
-            assert((not hd.at(PTPLib::Param.NODE).empty()) and (not hd.at(PTPLib::Param.NAME).empty()));
+            assert((not hd.at(PTPLib::common::Param.NODE).empty()) and (not hd.at(PTPLib::common::Param.NAME).empty()));
             current_header = hd.copy(hd.keys());
         }
 
@@ -207,4 +208,4 @@ namespace PTPLib::Net {
 
     };
 }
-#endif // PTPLIB_CHANNEL_HPP
+#endif // PTPLIB_NET_CHANNEL_HPP

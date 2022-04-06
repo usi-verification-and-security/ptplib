@@ -6,10 +6,10 @@
  */
 
 #pragma once
-#ifndef PTPLIB_ThreadPool_HPP
-#define PTPLIB_ThreadPool_HPP
+#ifndef PTPLIB_THREADS_THREADPOOl_HPP
+#define PTPLIB_THREADS_THREADPOOl_HPP
 
-#include "Printer.hpp"
+#include "PTPLib/common/Printer.hpp"
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -24,7 +24,7 @@
 #include <utility>
 #include <cassert>
 
-namespace PTPLib {
+namespace PTPLib::threads {
 
     class ThreadPool {
         typedef std::uint_fast32_t ui32;
@@ -43,10 +43,10 @@ namespace PTPLib {
 
         std::atomic<ui32> tasks_total = 0;
 
-        PTPLib::synced_stream & stream;
+        PTPLib::common::synced_stream & stream;
 
     public:
-        ThreadPool(PTPLib::synced_stream & ss,
+        ThreadPool(PTPLib::common::synced_stream & ss,
                 std::string _pool_name = std::string(), const ui32 & _thread_count = std::thread::hardware_concurrency())
         :
             pool_name    (_pool_name),
@@ -243,7 +243,7 @@ namespace PTPLib {
                 std::pair<std::function<void()>, std::string> task;
                 if (!paused && pop_task(task)) {
                     assert(task.second != "");
-                    stream.println(PTPLib::Color::FG_BrightRed, "task id : ",task.second);
+                    stream.println(PTPLib::common::Color::FG_BrightRed, "task name : ",task.second);
                     task.first();
                     tasks_total--;
                 }
@@ -254,4 +254,4 @@ namespace PTPLib {
         }
     };
 }
-#endif // PTPLIB_ThreadPool_HPP
+#endif // PTPLIB_THREADS_THREADPOOl_HPP

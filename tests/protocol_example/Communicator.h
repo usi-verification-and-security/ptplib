@@ -1,8 +1,8 @@
 #pragma once
-#include <PTPLib/Net/Channel.hpp>
-#include <PTPLib/Header.hpp>
-#include <PTPLib/PartitionConstant.hpp>
-#include <PTPLib/ThreadPool.hpp>
+#include <PTPLib/net/Channel.hpp>
+#include <PTPLib/net/Header.hpp>
+#include <PTPLib/common/PartitionConstant.hpp>
+#include <PTPLib/threads/ThreadPool.hpp>
 
 #include <unistd.h>
 #include <chrono>
@@ -10,18 +10,18 @@
 #include "SMTSolver.cc"
 
 class Communicator {
-    PTPLib::Net::Channel & channel;
+    PTPLib::net::Channel & channel;
     SMTSolver solver;
-    PTPLib::synced_stream & stream;
-    PTPLib::StoppableWatch timer;
+    PTPLib::common::synced_stream & stream;
+    PTPLib::common::StoppableWatch timer;
     bool color_enabled;
-    PTPLib::ThreadPool & th_pool;
+    PTPLib::threads::ThreadPool & th_pool;
     std::future<SMTSolver::Result> future;
     std::atomic<std::thread::id> thread_id;
 
 public:
 
-    Communicator(PTPLib::Net::Channel & ch, PTPLib::synced_stream & ss, const bool & ce, double seed, PTPLib::ThreadPool & th)
+    Communicator(PTPLib::net::Channel & ch, PTPLib::common::synced_stream & ss, const bool & ce, double seed, PTPLib::threads::ThreadPool & th)
         :
         channel(ch),
         solver(ch, ss, timer, ce, seed),
@@ -30,12 +30,12 @@ public:
         th_pool(th)
      {}
 
-    bool execute_event(const PTPLib::Net::smts_event & event, bool & shouldUpdateSolverAddress);
+    bool execute_event(const PTPLib::net::smts_event & event, bool & shouldUpdateSolverAddress);
 
-    bool setStop(PTPLib::Net::smts_event & event);
+    bool setStop(PTPLib::net::smts_event & event);
 
     void communicate_worker();
 
-    PTPLib::Net::Channel & getChannel() { return channel;};
+    PTPLib::net::Channel & getChannel() { return channel;};
 
 };
