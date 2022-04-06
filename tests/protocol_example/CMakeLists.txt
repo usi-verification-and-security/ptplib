@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
-execute_process(COMMAND ${CMAKE_CURRENT_LIST_DIR}/git_branch.sh OUTPUT_VARIABLE git_branch)
+set(PTPLib_branch ${branch})
+if(NOT PTPLib_branch )
+    set(PTPLib_branch protocol_example)
+endif()
 
 project(Protocol-Example)
 
@@ -9,13 +12,13 @@ find_package(Threads REQUIRED)
 set(PTPLib_repository "https://github.com/usi-verification-and-security/partition-channel.git")
 
 message("-- Protocol Example is fetching PTPLib from " ${PTPLib_repository})
-message("-- Branch : ${git_branch}")
+message("-- PTPLib Branch : ${PTPLib_branch}")
 
 include(FetchContent)
 FetchContent_Declare(
         PTPLib
         GIT_REPOSITORY ${PTPLib_repository}
-        GIT_TAG ${git_branch}
+        GIT_TAG ${PTPLib_branch}
 )
 
 FetchContent_MakeAvailable(PTPLib)
