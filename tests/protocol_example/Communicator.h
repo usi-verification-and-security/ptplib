@@ -24,7 +24,7 @@ public:
     Communicator(PTPLib::net::Channel & ch, PTPLib::common::synced_stream & ss, const bool & ce, double seed, PTPLib::threads::ThreadPool & th)
         :
         channel(ch),
-        solver(ch, ss, timer, ce, seed),
+        solver(ch, ss, timer, ce, seed, th),
         stream(ss),
         color_enabled(ce),
         th_pool(th)
