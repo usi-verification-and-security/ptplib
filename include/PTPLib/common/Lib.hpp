@@ -18,8 +18,8 @@
 #include <vector>
 #include <functional>
 
-void split(const std::string & string, const std::string & delimiter,
-           std::function<void(const std::string &)> callback, uint32_t limit = 0) {
+inline void split(const std::string & string, const std::string & delimiter,
+                  std::function<void(const std::string &)> callback, uint32_t limit = 0) {
     size_t b = 0;
     size_t e;
     while (true) {
@@ -34,7 +34,7 @@ void split(const std::string & string, const std::string & delimiter,
     }
 }
 
-std::vector<std::string> split(const std::string & string, const std::string & delimiter, uint32_t limit = 0) {
+inline std::vector<std::string> split(const std::string & string, const std::string & delimiter, uint32_t limit = 0) {
     std::vector<std::string> vector;
     split(string, delimiter, [&vector](const std::string & sub) {
         vector.push_back(sub);
@@ -42,8 +42,7 @@ std::vector<std::string> split(const std::string & string, const std::string & d
     return vector;
 }
 
-std::istream &
-split(std::istream & stream, const char delimiter, std::function<void(const std::string &)> callback) {
+inline std::istream & split(std::istream & stream, const char delimiter, std::function<void(const std::string &)> callback) {
     std::string sub;
     while (std::getline(stream, sub, delimiter)) {
         callback(sub);
@@ -52,14 +51,14 @@ split(std::istream & stream, const char delimiter, std::function<void(const std:
 }
 
 
-std::istream & split(std::istream & stream, const char delimiter, std::vector<std::string> & vector) {
+inline std::istream & split(std::istream & stream, const char delimiter, std::vector<std::string> & vector) {
     return split(stream, delimiter, [&vector](const std::string & sub) {
         vector.push_back(sub);
     });
 }
 
 
-std::string & replace(std::string & string, const std::string & from, const std::string & to, size_t n = 0) {
+inline std::string & replace(std::string & string, std::string const & from, std::string const & to, size_t n = 0) {
     if (from.empty())
         return string;
     size_t start_pos = 0;
@@ -75,13 +74,13 @@ std::string & replace(std::string & string, const std::string & from, const std:
     return string;
 }
 
-std::string & operator%(std::string & string, const std::pair<std::string, std::string> & pair) {
+inline std::string & operator%(std::string & string, const std::pair<std::string, std::string> & pair) {
     return replace(string, pair.first, pair.second);
 }
 
 
 template<typename T>
-std::ostream & join(std::ostream & stream, const std::string & delimiter, const std::vector<T> & vector) {
+inline std::ostream & join(std::ostream & stream, const std::string & delimiter, const std::vector<T> & vector) {
     for (auto it = vector.begin(); it != vector.end(); ++it) {
         stream << *it;
         if (it + 1 != vector.end())
@@ -92,7 +91,7 @@ std::ostream & join(std::ostream & stream, const std::string & delimiter, const 
 
 
 template<typename T>
-std::ostream & operator<<(std::ostream & stream, const std::vector<T> & v) {
+inline std::ostream & operator<<(std::ostream & stream, const std::vector<T> & v) {
     for (auto & i:v) {
         stream << i << '\0';
     }
@@ -100,7 +99,7 @@ std::ostream & operator<<(std::ostream & stream, const std::vector<T> & v) {
 }
 
 template<typename T>
-std::istream & operator>>(std::istream & stream, std::vector<T> & v) {
+inline std::istream & operator>>(std::istream & stream, std::vector<T> & v) {
     return split(stream, '\0', [&](std::string sub) {
         if (sub.size() == 0)
             return;
@@ -111,22 +110,22 @@ std::istream & operator>>(std::istream & stream, std::vector<T> & v) {
 }
 
 template<typename T>
-const std::string to_string(const T & obj) {
+inline std::string to_string(const T & obj) {
     std::ostringstream ss;
     ss << obj;
     return ss.str();
 }
 
 template<>
-const std::string to_string<bool>(const bool & b) {
+inline std::string to_string<bool>(const bool & b) {
     return b ? "true" : "false";
 }
 
-bool to_bool(const std::string & str) {
+inline bool to_bool(const std::string & str) {
     return (str == "true" or str == "TRUE") ? true : false;
 }
 
-std::string get_task_name(int index) {
+inline std::string get_task_name(int index) {
     auto input = static_cast<PTPLib::common::TASK>(index);
     switch (input) {
         case PTPLib::common::TASK::MEMORYCHECK:
