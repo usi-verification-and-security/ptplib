@@ -41,7 +41,7 @@ namespace PTPLib::net {
 
         std::atomic_bool requestStop;
         bool reset;
-        bool isStopping;
+        std::atomic_bool isStopping;
 
         bool clauseShareMode;
         bool isFirstTime;

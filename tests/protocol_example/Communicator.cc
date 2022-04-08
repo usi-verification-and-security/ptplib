@@ -25,18 +25,15 @@ void Communicator::communicate_worker()
         }());
 
         if (channel.shallStop()) {
+            channel.clearShallStop();
             lk.unlock();
 
             if (future.valid()) {
                 solver.setResult(future.get());
-                // Report Solver Result
                 assert(solver.getResult() != SMTSolver::Result::UNKNOWN);
+                // Report Solver Result
             }
 
-            {
-                std::scoped_lock<std::mutex> slk(channel.getMutex());
-                channel.clearShallStop();
-            }
         } else if (not getChannel().isEmpty_query()) {
             auto event = getChannel().pop_front_query();
             assert(not event.first[PTPLib::common::Param.COMMAND].empty());
@@ -46,9 +43,8 @@ void Communicator::communicate_worker()
             lk.unlock();
 
             if (setStop(event)) {
-                if (future.valid()) {
-                    future.get();
-                }
+                if (future.valid())
+                    future.wait();
             }
 
             bool should_resume;
@@ -64,11 +60,13 @@ void Communicator::communicate_worker()
 
             if (should_resume) {
                 getChannel().clearShouldStop();
+                channel.clearShallStop();
                 future = th_pool.submit([this, event] {
                     assert(not event.first.at(PTPLib::common::Param.QUERY).empty());
                     return solver.search((char *) (event.second + event.first.at(PTPLib::common::Param.QUERY)).c_str());
                 }, ::get_task_name(PTPLib::common::TASK::SOLVER));
-            }
+            } else
+                break;
         }
         else if (channel.shouldReset())
             break;

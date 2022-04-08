@@ -17,20 +17,16 @@ private:
     bool color_enabled;
     double waiting_duration;
     std::atomic<std::thread::id> thread_id;
-    std::atomic_bool shouldLearnClause;
-    PTPLib::threads::ThreadPool & th_pool;
+
 public:
-    SMTSolver(PTPLib::net::Channel & ch, PTPLib::common::synced_stream & st, PTPLib::common::StoppableWatch & tm, const bool & ce, double wd,
-              PTPLib::threads::ThreadPool & th)
+    SMTSolver(PTPLib::net::Channel & ch, PTPLib::common::synced_stream & st, PTPLib::common::StoppableWatch & tm, const bool & ce, double wd)
     :
             channel (ch),
             result (Result::UNKNOWN),
             stream  (st),
             timer   (tm),
             color_enabled(ce),
-            waiting_duration(wd),
-            shouldLearnClause(false),
-            th_pool(th)
+            waiting_duration(wd)
     {}
 
     void setResult(Result res)     { result = res; }
@@ -51,5 +47,4 @@ public:
 
     static std::string resultToString(SMTSolver::Result res);
 
-    void periodic_clause_learn();
 };

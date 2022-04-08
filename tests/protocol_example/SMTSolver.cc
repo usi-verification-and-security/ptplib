@@ -24,15 +24,8 @@ SMTSolver::Result SMTSolver::do_solve() {
     int random_n = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(1000, 2000);
     std::this_thread::sleep_for(std::chrono::milliseconds (random_n));
     std::vector<PTPLib::net::Lemma>  toPublishClauses;
-    if (channel.getFirstTimeLearnClause() or shouldLearnClause) {
-        if (getChannel().getFirstTimeLearnClause()) {
-            getChannel().clearFirstTimeLearnClause();
-            getChannel().setClauseLearnDuration(random_n*2);
-            th_pool.push_task([this] {
-                periodic_clause_learn();
-            }, ::get_task_name(PTPLib::common::TASK::CLAUSELEARN));
-        }
-        shouldLearnClause = false;
+    if (channel.shouldLearnClauses()) {
+        channel.clearShouldLearnClauses();
         if (learnSomeClauses(toPublishClauses)) {
             std::unique_lock<std::mutex> lk(channel.getMutex());
             assert([&]() {
@@ -66,20 +59,8 @@ SMTSolver::Result SMTSolver::search(char * smt_lib) {
     {
         solver_result = do_solve();
         if (solver_result != Result::UNKNOWN) {
-            std::unique_lock<std::mutex> lk(channel.getMutex());
-            assert([&]() {
-                if (thread_id != std::this_thread::get_id())
-                    throw PTPLib::common::Exception(__FILE__, __LINE__, "search has inconsistent thread id");
-
-                if (not lk.owns_lock()) {
-                    throw PTPLib::common::Exception(__FILE__, __LINE__, "search can't take the lock");
-                }
-                return true;
-            }());
             channel.setShallStop();
             channel.notify_all();
-            lk.unlock();
-
             stream.println(color_enabled ? PTPLib::common::Color::FG_Green : PTPLib::common::Color::FG_DEFAULT,
                            "[t SEARCH ] -> set shall stop");
             break;
@@ -87,6 +68,7 @@ SMTSolver::Result SMTSolver::search(char * smt_lib) {
     }
     stream.println(color_enabled ? PTPLib::common::Color::FG_Green : PTPLib::common::Color::FG_DEFAULT,
                    "[t SEARCH ] -> solver exited with ", SMTSolver::resultToString(solver_result));
+    setResult(solver_result);
     return solver_result;
 }
 
@@ -129,15 +111,3 @@ std::string SMTSolver::resultToString(SMTSolver::Result res) {
     else return "undefined";
 }
 
-void SMTSolver::periodic_clause_learn()
-{
-    while (true) {
-        std::unique_lock<std::mutex> lk(channel.getMutex());
-        if (getChannel().wait_for_reset(lk, std::chrono::milliseconds(getChannel().getClauseLearnDuration())))
-            break;
-        shouldLearnClause = true;
-    }
-
-    stream.println(color_enabled ? PTPLib::common::Color::FG_BrightBlue : PTPLib::common::Color::FG_DEFAULT,
-                   "[t CLAUSELEARN ] -> clause learn timout: ", getChannel().getClauseLearnDuration());
-}
