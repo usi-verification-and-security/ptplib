@@ -55,11 +55,11 @@ int main(int argc, char** argv) {
 
         while (true)
         {
-            auto header_payload = listener.read_event(command_counter, solving_watch.elapsed_time_second());
-            assert(not header_payload.first[PTPLib::common::Param.COMMAND].empty());
+            auto event = listener.generate_event(command_counter, solving_watch.elapsed_time_second());
+            assert(not event.header[PTPLib::common::Param.COMMAND].empty());
 
             stream.println(color_enabled ? PTPLib::common::Color::FG_Red : PTPLib::common::Color::FG_DEFAULT,
-                           "[t LISTENER ] -> ", header_payload.first.at(PTPLib::common::Param.COMMAND)," is received and notified" );
+                           "[t LISTENER ] -> ", event.header.at(PTPLib::common::Param.COMMAND), " is received and notified" );
             {
                 std::unique_lock<std::mutex> _lk(listener.getChannel().getMutex());
                 assert([&]() {
@@ -68,12 +68,12 @@ int main(int argc, char** argv) {
                     }
                     return true;
                 }());
-                if (header_payload.first[PTPLib::common::Param.COMMAND] == PTPLib::common::Command.STOP) {
+                if (event.header[PTPLib::common::Param.COMMAND] == PTPLib::common::Command.STOP) {
                     reset = true;
                     if (not listener.getChannel().isEmpty_query())
                         listener.getChannel().clear_queries();
                 }
-                listener.queue_event(std::move(header_payload));
+                listener.queue_event(std::move(event));
             }
             if (reset)
                 break;

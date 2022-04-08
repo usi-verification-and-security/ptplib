@@ -30,9 +30,9 @@ public:
         th_pool(th)
      {}
 
-    bool execute_event(const PTPLib::net::smts_event & event, bool & shouldUpdateSolverAddress);
+    bool execute_event(const PTPLib::net::SMTS_Event & event, bool & shouldUpdateSolverAddress);
 
-    bool setStop(PTPLib::net::smts_event & event);
+    bool setStop(PTPLib::net::SMTS_Event & event);
 
     void communicate_worker();
 

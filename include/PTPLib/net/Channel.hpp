@@ -10,6 +10,7 @@
 
 #include "Header.hpp"
 #include "Lemma.hpp"
+#include "SMTSRequest.hpp"
 
 #include <vector>
 #include <mutex>
@@ -23,8 +24,7 @@
 
 namespace PTPLib::net {
 
-    using smts_event = std::pair<PTPLib::net::Header, std::string>;
-    using queue_event = std::queue<smts_event>;
+    using queue_event = std::queue<PTPLib::net::SMTS_Event>;
     using map_solver_clause = std::map<std::string, std::vector<PTPLib::net::Lemma>>;
     using time_duration = std::chrono::duration<double>;
 
@@ -107,16 +107,16 @@ namespace PTPLib::net {
 
         queue_event get_events() const & { return queries; }
 
-        smts_event pop_front_query() {
-            smts_event tmp_p(std::move(queries.front()));
+        SMTS_Event pop_front_query() {
+            SMTS_Event tmp_p(std::move(queries.front()));
             queries.pop();
             return tmp_p;
         }
 
-        PTPLib::net::Header & front_queries() { return queries.front().first; }
+        std::string & front_query() { return queries.front().header.at(PTPLib::common::Param.COMMAND); }
 
-        void push_back_query(smts_event && hd) {
-            assert((not hd.first.at(PTPLib::common::Param.NODE).empty()) and (not hd.first.at(PTPLib::common::Param.NAME).empty()));
+        void push_back_query(SMTS_Event && hd) {
+            assert((not hd.header.at(PTPLib::common::Param.NODE).empty()) and (not hd.header.at(PTPLib::common::Param.NAME).empty()));
             queries.push(std::move(hd));
         }
 
@@ -125,7 +125,7 @@ namespace PTPLib::net {
             current_header = hd.copy(hd.keys());
         }
 
-        PTPLib::net::Header & get_current_header() { return current_header; }
+        PTPLib::net::Header  get_current_header() { return current_header; }
 
         void clear_current_header() { current_header.clear(); }
 

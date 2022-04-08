@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef PTPLIB_NET_SMTSREQUEST_H
-#define PTPLIB_NET_SMTSREQUEST_H
+#ifndef PTPLIB_NET_SMTSEVENT_H
+#define PTPLIB_NET_SMTSEVENT_H
 
 #include "PTPLib/net/Header.hpp"
 
@@ -16,11 +16,14 @@
 
 
 namespace PTPLib::net {
-    struct SMTSRequest : public std::pair<PTPLib::net::Header, std::string> {
-        using std::pair<PTPLib::net::Header, std::string>::pair;
-        PTPLib::net::Header & header = this->first;
-        std::string & body = this->second;
+    struct SMTS_Event {
+        PTPLib::net::Header header;
+        std::string body;
+        SMTS_Event(PTPLib::net::Header && hd, std::string && str) {
+            this->header = std::move(hd);
+            this->body = std::move(str);
+        }
     };
 }
 
-#endif //PTPLIB_NET_SMTSREQUEST_H
+#endif //PTPLIB_NET_SMTSEVENT_H

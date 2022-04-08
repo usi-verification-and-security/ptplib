@@ -90,13 +90,13 @@ void Listener::notify_reset()
     _lk.unlock();
 }
 
-void Listener::queue_event(PTPLib::net::smts_event && header_payload)
+void Listener::queue_event(PTPLib::net::SMTS_Event && event)
 {
-    getChannel().push_back_query(std::move(header_payload));
+    getChannel().push_back_query(std::move(event));
     getChannel().notify_all();
 }
 
-PTPLib::net::smts_event Listener::read_event(int counter, int time_passed)
+PTPLib::net::SMTS_Event Listener::generate_event(int counter, int time_passed)
 {
     std::string payload;
     int sleep_duration = 0;
@@ -115,13 +115,13 @@ PTPLib::net::smts_event Listener::read_event(int counter, int time_passed)
     header.emplace(PTPLib::common::Param.QUERY, "(check-sat)");
     if (time_passed > nCommands * 5) {
         header.emplace(PTPLib::common::Param.COMMAND, PTPLib::common::Command.STOP);
-        return PTPLib::net::smts_event (header, payload);
+        return PTPLib::net::SMTS_Event(std::move(header), std::move(payload));
     }
     else if (counter == nCommands) {
         if (not waiting_duration)
             std::this_thread::sleep_for(std::chrono::seconds ((nCommands * 10) - time_passed));
         header.emplace(PTPLib::common::Param.COMMAND, PTPLib::common::Command.STOP);
-        return PTPLib::net::smts_event (header, payload);
+        return PTPLib::net::SMTS_Event(std::move(header), std::move(payload));
     }
     else if (counter == 1) {
         header.emplace(PTPLib::common::Param.COMMAND, PTPLib::common::Command.SOLVE);
@@ -139,7 +139,7 @@ PTPLib::net::smts_event Listener::read_event(int counter, int time_passed)
         header.emplace(PTPLib::common::Param.PARTITIONS, "2");
     }
 
-    return PTPLib::net::smts_event(header, payload);
+    return PTPLib::net::SMTS_Event(std::move(header), std::move(payload));
 }
 
 void Listener::push_clause_worker(double seed, double min, double max)
@@ -249,7 +249,7 @@ void Listener::pull_clause_worker(double seed, double min, double max)
                         channel.insert_pulled_clause(std::move(lemmas));
                         header.erase(PTPLib::common::Param.COMMAND);
                         header[PTPLib::common::Param.COMMAND] = PTPLib::common::Command.CLAUSEINJECTION;
-                        queue_event(PTPLib::net::smts_event (header, PTPLib::common::Command.CLAUSEINJECTION));
+                        queue_event(PTPLib::net::SMTS_Event(std::move(header), ""));
                         _lk.unlock();
                     }
                     stream.println(color_enabled ? PTPLib::common::Color::FG_Magenta : PTPLib::common::Color::FG_DEFAULT,

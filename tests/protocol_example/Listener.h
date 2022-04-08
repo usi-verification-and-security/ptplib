@@ -41,9 +41,9 @@ public:
 
     void push_to_pool(PTPLib::common::TASK tname, double seed = 0, double td_min = 0, double td_max = 0);
 
-    PTPLib::net::smts_event read_event(int counter, int solve_time);
+    PTPLib::net::SMTS_Event generate_event(int counter, int solve_time);
 
-    void queue_event(PTPLib::net::smts_event && header_payload);
+    void queue_event(PTPLib::net::SMTS_Event && header_payload);
 
     void pull_clause_worker(double seed, double n_min, double n_max);
 

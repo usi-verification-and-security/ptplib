@@ -36,10 +36,10 @@ void Communicator::communicate_worker()
 
         } else if (not getChannel().isEmpty_query()) {
             auto event = getChannel().pop_front_query();
-            assert(not event.first[PTPLib::common::Param.COMMAND].empty());
+            assert(not event.header[PTPLib::common::Param.COMMAND].empty());
             stream.println(color_enabled ? PTPLib::common::Color::FG_Cyan : PTPLib::common::Color::FG_DEFAULT,
                             "[t COMMUNICATOR ] -> ", "updating the channel with ",
-                           event.first.at(PTPLib::common::Param.COMMAND), " and waiting");
+                           event.header.at(PTPLib::common::Param.COMMAND), " and waiting");
             lk.unlock();
 
             if (setStop(event)) {
@@ -54,7 +54,7 @@ void Communicator::communicate_worker()
                 should_resume = execute_event(event, shouldUpdateSolverAddress);
                 if (shouldUpdateSolverAddress) {
                     channel.clear_current_header();
-                    channel.set_current_header(event.first);
+                    channel.set_current_header(event.header);
                 }
             }
 
@@ -62,8 +62,8 @@ void Communicator::communicate_worker()
                 getChannel().clearShouldStop();
                 channel.clearShallStop();
                 future = th_pool.submit([this, event] {
-                    assert(not event.first.at(PTPLib::common::Param.QUERY).empty());
-                    return solver.search((char *) (event.second + event.first.at(PTPLib::common::Param.QUERY)).c_str());
+                    assert(not event.header.at(PTPLib::common::Param.QUERY).empty());
+                    return solver.search((char *) (event.body + event.header.at(PTPLib::common::Param.QUERY)).c_str());
                 }, ::get_task_name(PTPLib::common::TASK::SOLVER));
             } else
                 break;
@@ -80,38 +80,38 @@ void Communicator::communicate_worker()
 }
 
 
-bool Communicator::execute_event(const PTPLib::net::smts_event & event, bool & shouldUpdateSolverAddress)
+bool Communicator::execute_event(const PTPLib::net::SMTS_Event & event, bool & shouldUpdateSolverAddress)
 {
-    assert(not event.first.at(PTPLib::common::Param.COMMAND).empty());
-    if (event.first.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.STOP)
+    assert(not event.header.at(PTPLib::common::Param.COMMAND).empty());
+    if (event.header.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.STOP)
         return false;
 
-    else if (event.first.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.SOLVE) {
+    else if (event.header.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.SOLVE) {
         solver.initialise_logic();
         shouldUpdateSolverAddress = true;
     }
 
-    else if (event.first.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.PARTITION)
-        solver.do_partition(event.first.at(PTPLib::common::Param.NODE), event.first.at(PTPLib::common::Param.PARTITIONS));
+    else if (event.header.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.PARTITION)
+        solver.do_partition(event.header.at(PTPLib::common::Param.NODE), event.header.at(PTPLib::common::Param.PARTITIONS));
 
-    else if (event.first.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.CLAUSEINJECTION) {
+    else if (event.header.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.CLAUSEINJECTION) {
         auto pulled_clauses = channel.swap_pulled_clauses();
         solver.inject_clauses(*pulled_clauses);
 
-    } else if (event.first.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.INCREMENTAL)
+    } else if (event.header.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.INCREMENTAL)
         shouldUpdateSolverAddress = true;
 
-    if (not channel.isEmpty_query() and channel.front_queries().at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.STOP)
+    if (not channel.isEmpty_query() and channel.front_query() == PTPLib::common::Command.STOP)
         return false;
 
     return true;
 }
 
 
-bool Communicator::setStop(PTPLib::net::smts_event & event)
+bool Communicator::setStop(PTPLib::net::SMTS_Event & event)
 {
-    assert(not event.first.at(PTPLib::common::Param.COMMAND).empty());
-    if (event.first.at(PTPLib::common::Param.COMMAND) != PTPLib::common::Command.SOLVE) {
+    assert(not event.header.at(PTPLib::common::Param.COMMAND).empty());
+    if (event.header.at(PTPLib::common::Param.COMMAND) != PTPLib::common::Command.SOLVE) {
         channel.setShouldStop();
         return true;
     }
