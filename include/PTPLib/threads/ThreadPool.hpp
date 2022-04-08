@@ -145,7 +145,7 @@ namespace PTPLib::threads {
 
 
         template<typename F, typename... A, typename = std::enable_if_t<std::is_void_v<std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>>>>
-        std::future<bool> submit(const F & task, const A & ...args) {
+        std::future<bool> submit(const F & task, const A & ...args, std::string task_name=std::string()) {
             std::shared_ptr<std::promise<bool>> task_promise(new std::promise<bool>);
             std::future<bool> future = task_promise->get_future();
             push_task([task, args..., task_promise] {
@@ -160,7 +160,7 @@ namespace PTPLib::threads {
                     catch (...) {
                     }
                 }
-            });
+            }, task_name);
             return future;
         }
 
@@ -170,7 +170,7 @@ namespace PTPLib::threads {
         std::future<R> submit(const F & task, const A & ...args, std::string task_name=std::string()) {
             std::shared_ptr<std::promise<R>> task_promise(new std::promise<R>);
             std::future<R> future = task_promise->get_future();
-            push_task([task, args..., task_promise, task_name] {
+            push_task([task, args..., task_promise] {
                 try {
                     task_promise->set_value(task(args...));
                 }
@@ -242,10 +242,11 @@ namespace PTPLib::threads {
             while (running) {
                 std::pair<std::function<void()>, std::string> task;
                 if (!paused && pop_task(task)) {
-                    assert(task.second != "");
-                    stream.println(PTPLib::common::Color::FG_BrightRed, "task name : ",task.second);
+                    assert(not task.second.empty());
+                    stream.println(PTPLib::common::Color::FG_BrightRed, "task start: name : ",task.second);
                     task.first();
                     tasks_total--;
+                    stream.println(PTPLib::common::Color::FG_BrightRed, "task end: name : ",task.second, " Remained: ", tasks_total);
                 }
                 else {
                     sleep_or_yield();
