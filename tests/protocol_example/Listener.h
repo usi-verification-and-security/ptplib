@@ -8,7 +8,7 @@
 
 class Listener {
     PTPLib::net::Channel channel;
-    PTPLib::threads::ThreadPool listener_pool;
+    PTPLib::threads::ThreadPool th_pool;
     Communicator communicator;
     PTPLib::common::synced_stream & stream;
     PTPLib::common::StoppableWatch timer;
@@ -22,9 +22,9 @@ class Listener {
 public:
 
     Listener(PTPLib::common::synced_stream & ss, const bool & ce, double wd)
-        :
-        listener_pool(ss, "listener_pool", std::thread::hardware_concurrency() - 1),
-        communicator(channel, ss, ce, wd, listener_pool),
+    :
+        th_pool(ss, "thread_pool", std::thread::hardware_concurrency() - 1),
+        communicator(channel, ss, ce, wd, th_pool),
         stream(ss),
         color_enabled(ce),
         waiting_duration(wd)
@@ -57,5 +57,7 @@ public:
 
     PTPLib::net::Channel & getChannel() { return channel;};
 
-    PTPLib::threads::ThreadPool & getPool() { return listener_pool; }
+    PTPLib::threads::ThreadPool & getPool() { return th_pool; }
+
+    void periodic_clauseLearning_worker();
 };

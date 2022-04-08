@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
 
             listener.push_to_pool(PTPLib::common::TASK::CLAUSEPUSH, (waiting_duration ? waiting_duration : std::rand()), 1000, 2000);
             listener.push_to_pool(PTPLib::common::TASK::CLAUSEPULL, (waiting_duration ? waiting_duration : std::rand()), 2000, 4000);
+            listener.push_to_pool(PTPLib::common::TASK::CLAUSELEARN);
         }
 
         int nCommands = atoi(argv[2]);

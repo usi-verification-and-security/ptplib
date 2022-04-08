@@ -59,7 +59,9 @@ void Listener::worker(PTPLib::common::TASK wname, double seed, double td_min, do
         case PTPLib::common::TASK::MEMORYCHECK:
             memory_checker();
             break;
-
+        case PTPLib::common::TASK::CLAUSELEARN:
+            periodic_clauseLearning_worker();
+            break;
         default:
             break;
     }
@@ -68,7 +70,7 @@ void Listener::worker(PTPLib::common::TASK wname, double seed, double td_min, do
 
 void Listener::push_to_pool(PTPLib::common::TASK t_name, double seed, double td_min, double td_max )
 {
-    listener_pool.push_task([this, t_name, seed, td_min, td_max]
+    th_pool.push_task([this, t_name, seed, td_min, td_max]
     {
             worker(t_name, seed, td_min, td_max);
     }, ::get_task_name(t_name));
@@ -293,4 +295,36 @@ bool Listener::write_lemma(std::unique_ptr<std::map<std::string, std::vector<PTP
     }
     header.at(PTPLib::common::Param.NODE);
     return true;
+}
+
+void Listener::periodic_clauseLearning_worker()
+{
+    int random_n = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(1000, 2000);
+    if (getChannel().isClauseShareMode()) {
+        getChannel().setClauseLearnDuration(random_n*2);
+        th_pool.push_task
+        (
+            [this]
+            {
+                while (true)
+                {
+                    std::unique_lock<std::mutex> lk(channel.getMutex());
+                    if (getChannel().wait_for_reset(lk, std::chrono::milliseconds(getChannel().getClauseLearnDuration())))
+                        break;
+                    assert([&]() {
+                        if (not lk.owns_lock()) {
+                            throw PTPLib::common::Exception(__FILE__, __LINE__, "periodic_clauseLearning_worker can't take the lock");
+                        }
+                        return true;
+                    }());
+                    getChannel().setShouldLearnClauses();
+                    lk.unlock();
+                }
+                stream.println(color_enabled ? PTPLib::common::Color::FG_BrightBlue : PTPLib::common::Color::FG_DEFAULT,
+                           "[t CLAUSELEARN ] -> clause learn timout: ", getChannel().getClauseLearnDuration());
+            },
+            ::get_task_name(PTPLib::common::TASK::CLAUSELEARN)
+       );
+    }
+
 }
