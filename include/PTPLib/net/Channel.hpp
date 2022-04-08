@@ -10,7 +10,7 @@
 
 #include "Header.hpp"
 #include "Lemma.hpp"
-#include "SMTSRequest.hpp"
+#include "SMTSEvent.hpp"
 
 #include <vector>
 #include <mutex>
