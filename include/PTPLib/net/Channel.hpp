@@ -42,9 +42,12 @@ namespace PTPLib::net {
         std::atomic_bool requestStop;
         bool reset;
         bool isStopping;
+
         bool clauseShareMode;
         bool isFirstTime;
+        std::atomic_bool shouldLearnClause;
         int clauseLearnDuration;
+
         bool apiMode;
 
     public:
@@ -53,8 +56,9 @@ namespace PTPLib::net {
             requestStop(false),
             reset(false),
             isStopping(false),
-            clauseShareMode(false),
-            isFirstTime(false),
+            clauseShareMode(true),
+            isFirstTime(true),
+            shouldLearnClause(false),
             clauseLearnDuration(4000),
             apiMode(false)
         {
@@ -163,7 +167,7 @@ namespace PTPLib::net {
 
         bool isClauseShareMode() const { return clauseShareMode; }
 
-        void setClauseShareMode() { clauseShareMode = isFirstTime = true; }
+        void setClauseShareMode() { clauseShareMode = true; }
 
         void clearClauseShareMode() { clauseShareMode = false; }
 
@@ -174,6 +178,12 @@ namespace PTPLib::net {
         void setClauseLearnDuration(int cld) { clauseLearnDuration = cld; }
 
         int getClauseLearnDuration() const { return clauseLearnDuration; }
+
+        bool shouldLearnClauses() const { return shouldLearnClause; }
+
+        void setShouldLearnClauses() { shouldLearnClause = true; }
+
+        void clearShouldLearnClauses() { shouldLearnClause = false; }
 
         bool isApiMode() const { return apiMode; }
 
@@ -202,7 +212,6 @@ namespace PTPLib::net {
             clearShouldStop();
             clearShallStop();
             clearReset();
-            clearClauseShareMode();
             setApiMode();
         }
 
