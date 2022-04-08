@@ -44,7 +44,6 @@ namespace PTPLib::net {
         std::atomic_bool isStopping;
 
         bool clauseShareMode;
-        bool isFirstTime;
         std::atomic_bool shouldLearnClause;
         int clauseLearnDuration;
 
@@ -57,8 +56,7 @@ namespace PTPLib::net {
             reset(false),
             isStopping(false),
             clauseShareMode(true),
-            isFirstTime(true),
-            shouldLearnClause(false),
+            shouldLearnClause(true),
             clauseLearnDuration(4000),
             apiMode(false)
         {
@@ -170,10 +168,6 @@ namespace PTPLib::net {
         void setClauseShareMode() { clauseShareMode = true; }
 
         void clearClauseShareMode() { clauseShareMode = false; }
-
-        bool getFirstTimeLearnClause() const { return isFirstTime; }
-
-        void clearFirstTimeLearnClause() { isFirstTime = false; }
 
         void setClauseLearnDuration(int cld) { clauseLearnDuration = cld; }
 
