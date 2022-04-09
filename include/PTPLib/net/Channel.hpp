@@ -55,9 +55,9 @@ namespace PTPLib::net {
             requestStop(false),
             reset(false),
             isStopping(false),
-            clauseShareMode(true),
+            clauseShareMode(false),
             shouldLearnClause(true),
-            clauseLearnDuration(4000),
+            clauseLearnDuration(1000),
             apiMode(false)
         {
             m_learned_clauses = std::make_unique<map_solver_clause>();
