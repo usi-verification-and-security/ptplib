@@ -48,6 +48,7 @@ namespace PTPLib::net {
         int clauseLearnDuration;
 
         bool cube_and_conquer;
+        bool color_mode;
 
     public:
         Channel()
@@ -58,7 +59,8 @@ namespace PTPLib::net {
                 clauseShareMode(false),
                 shouldLearnClause(true),
                 clauseLearnDuration(1000),
-                cube_and_conquer(false)
+                cube_and_conquer(false),
+                color_mode(false)
         {
             m_learned_clauses = std::make_unique<map_solver_clause>();
             m_pulled_clauses = std::make_unique<map_solver_clause>();
@@ -184,6 +186,12 @@ namespace PTPLib::net {
         void setParallelMode() { cube_and_conquer = true; }
 
         void clearParallelMode() { cube_and_conquer = false; }
+
+        bool isColorMode() const { return color_mode; }
+
+        void setColorMode() { color_mode = true; }
+
+        void clearColorMode() { color_mode = false; }
 
         bool wait_for_reset(std::unique_lock<std::mutex> & lock, const time_duration & td) {
             return cv.wait_for(lock, td, [&] {
