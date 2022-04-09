@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 set(PTPLib_branch ${branch})
 if(NOT PTPLib_branch )
-    set(PTPLib_branch protocol_example)
+    set(PTPLib_branch master)
 endif()
 
 project(Protocol-Example)
