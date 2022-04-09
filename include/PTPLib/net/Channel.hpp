@@ -47,18 +47,18 @@ namespace PTPLib::net {
         std::atomic_bool shouldLearnClause;
         int clauseLearnDuration;
 
-        bool apiMode;
+        bool cube_and_conquer;
 
     public:
         Channel()
-        :
-            requestStop(false),
-            reset(false),
-            isStopping(false),
-            clauseShareMode(false),
-            shouldLearnClause(true),
-            clauseLearnDuration(1000),
-            apiMode(false)
+                :
+                requestStop(false),
+                reset(false),
+                isStopping(false),
+                clauseShareMode(false),
+                shouldLearnClause(true),
+                clauseLearnDuration(1000),
+                cube_and_conquer(false)
         {
             m_learned_clauses = std::make_unique<map_solver_clause>();
             m_pulled_clauses = std::make_unique<map_solver_clause>();
@@ -67,7 +67,7 @@ namespace PTPLib::net {
         std::mutex & getMutex() { return mutex; }
 
         void insert_learned_clause(std::vector<PTPLib::net::Lemma> && toPublish_clauses) {
-            assert(not get_current_header().at(PTPLib::common::Param.NODE).empty());
+            assert(not get_current_header().empty());
             (*m_learned_clauses)[get_current_header().at(PTPLib::common::Param.NODE)].insert
                     (
                             std::end((*m_learned_clauses)[get_current_header().at(PTPLib::common::Param.NODE)]),
@@ -76,7 +76,7 @@ namespace PTPLib::net {
         }
 
         void insert_pulled_clause(std::vector<PTPLib::net::Lemma> && toInject_clauses) {
-            assert(not get_current_header().at(PTPLib::common::Param.NODE).empty());
+            assert(not get_current_header().empty());
             (*m_pulled_clauses)[get_current_header().at(PTPLib::common::Param.NODE)].insert
                     (
                             std::end((*m_pulled_clauses)[get_current_header().at(PTPLib::common::Param.NODE)]),
@@ -179,11 +179,11 @@ namespace PTPLib::net {
 
         void clearShouldLearnClauses() { shouldLearnClause = false; }
 
-        bool isApiMode() const { return apiMode; }
+        bool isSolverInParallelMode() const { return cube_and_conquer; }
 
-        void setApiMode() { apiMode = true; }
+        void setParallelMode() { cube_and_conquer = true; }
 
-        void clearApiMode() { apiMode = false; }
+        void clearParallelMode() { cube_and_conquer = false; }
 
         bool wait_for_reset(std::unique_lock<std::mutex> & lock, const time_duration & td) {
             return cv.wait_for(lock, td, [&] {
@@ -206,7 +206,6 @@ namespace PTPLib::net {
             clearShouldStop();
             clearShallStop();
             clearReset();
-            setApiMode();
         }
 
     };
