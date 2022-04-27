@@ -9,7 +9,6 @@
 #ifndef PTPLIB_THREADS_THREADPOOl_HPP
 #define PTPLIB_THREADS_THREADPOOl_HPP
 
-#include "PTPLib/common/Printer.hpp"
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -42,17 +41,16 @@ namespace PTPLib::threads {
         std::unique_ptr<std::thread[]> threads;
 
         std::atomic<ui32> tasks_total = 0;
-
-        PTPLib::common::synced_stream & stream;
-
+#ifdef SMTS_ACTIVELOG
+        #include "PTPLib/common/Printer.hpp"
+        PTPLib::common::synced_stream * stream = nullptr;
+#endif
     public:
-        ThreadPool(PTPLib::common::synced_stream & ss,
-                std::string _pool_name = std::string(), const ui32 & _thread_count = std::thread::hardware_concurrency())
+        ThreadPool(std::string _pool_name = std::string(), const ui32 & _thread_count = std::thread::hardware_concurrency())
         :
             pool_name    (_pool_name),
             thread_count (_thread_count),
-            threads      (new std::thread[_thread_count]),
-            stream  (ss)
+            threads      (new std::thread[_thread_count])
         {
            create_threads();
         }
@@ -61,8 +59,15 @@ namespace PTPLib::threads {
             wait_for_tasks();
             running = false;
             destroy_threads();
-            std::cout << pool_name <<" destroyed!" << std::endl;
+#ifdef SMTS_ACTIVELOG
+            if (stream)
+                stream->println(PTPLib::common::Color::FG_BrightRed, pool_name, " destroyed!");
+#endif
         }
+
+#ifdef SMTS_ACTIVELOG
+        void set_syncedStream(PTPLib::common::synced_stream & ss) { stream = &ss; }
+#endif
 
         size_t get_tasks_queued() const {
             const std::scoped_lock lock(queue_mutex);
@@ -242,11 +247,16 @@ namespace PTPLib::threads {
             while (running) {
                 std::pair<std::function<void()>, std::string> task;
                 if (!paused && pop_task(task)) {
-                    assert(not task.second.empty());
-                    stream.println(PTPLib::common::Color::FG_BrightRed, "task start: name : ",task.second);
+#ifdef SMTS_ACTIVELOG
+                    if (stream)
+                        stream->println(PTPLib::common::Color::FG_BrightRed, "task start: name : ", task.second);
+#endif
                     task.first();
                     tasks_total--;
-                    stream.println(PTPLib::common::Color::FG_BrightRed, "task end: name : ",task.second, " Remained: ", tasks_total);
+#ifdef SMTS_ACTIVELOG
+                    if (stream)
+                        stream->println(PTPLib::common::Color::FG_BrightRed, "task end: name : ", task.second, " Remained tasks: ", tasks_total);
+#endif
                 }
                 else {
                     sleep_or_yield();
