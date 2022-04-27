@@ -12,30 +12,38 @@
 
 namespace PTPLib::common
 {
+    typedef const std::string CONST_STRING;
     static struct
     {
-        const std::string PARTITION = "partition";
-        const std::string STOP = "stop";
-        const std::string CLAUSEINJECTION = "inject";
-        const std::string INCREMENTAL = "incremental";
-        const std::string CNFCLAUSES = "cnf-clauses";
-        const std::string CNFLEARNTS = "cnf-learnts";
-        const std::string SOLVE = "solve";
-        const std::string LEMMAS = "lemmas";
-        const std::string TERMINATE = "terminate";
+        CONST_STRING PARTITION = "partition";
+        CONST_STRING STOP = "stop";
+        CONST_STRING CLAUSEINJECTION = "inject";
+        CONST_STRING INCREMENTAL = "incremental";
+        CONST_STRING CNFCLAUSES = "cnf-clauses";
+        CONST_STRING CNFLEARNTS = "cnf-learnts";
+        CONST_STRING SOLVE = "solve";
+        CONST_STRING LEMMAS = "lemmas";
+        CONST_STRING TERMINATE = "terminate";
     } Command;
 
     static struct
     {
-        const std::string NODE = "node";
-        const std::string NODE_ = "node_";
-        const std::string COMMAND = "command";
-        const std::string QUERY = "query";
-        const std::string NAME = "name";
-        const std::string SEED = "seed";
-        const std::string SPLIT_TYPE = "split-type";
-        const std::string SPLIT_PREFERENCE = "split-preference";
-        const std::string PARTITIONS = "partitions";
+        CONST_STRING NODE = "node";
+        CONST_STRING NODE_ = "node_";
+        CONST_STRING COMMAND = "command";
+        CONST_STRING QUERY = "query";
+        CONST_STRING NAME = "name";
+        CONST_STRING SEED = "seed";
+        CONST_STRING SPLIT_TYPE = "split-type";
+        CONST_STRING SPLIT_PREFERENCE = "split-preference";
+        CONST_STRING PARTITIONS = "partitions";
+        CONST_STRING OPENSMT2 = "OpenSMT2";
+        CONST_STRING SPACER = "Spacer";
+        CONST_STRING SALLY = "SALLY";
+        CONST_STRING SOLVER = "solver";
+        CONST_STRING REPORT = "report";
+        CONST_STRING MAX_MEMORY = "max_memory";
+        CONST_STRING SCATTER_SPLIT = "scatter-split";
     } Param;
 
 
@@ -44,7 +52,7 @@ namespace PTPLib::common
         MEMORYCHECK, COMMUNICATION, CLAUSEPUSH, CLAUSEPULL, SOLVER, CLAUSELEARN
     };
 
-    static const std::string TASK_STR[] = { "MEMORYCHECK", "COMMUNICATION", "CLAUSEPUSH", "CLAUSEPULL", "SOLVER", "CLAUSELEARN" };
+    static CONST_STRING TASK_STR[] = { "MEMORYCHECK", "COMMUNICATION", "CLAUSEPUSH", "CLAUSEPULL", "SOLVER", "CLAUSELEARN" };
 }
 
 #endif // PTPLIB_COMMON_PARTITIONCONSTANT_HPP
