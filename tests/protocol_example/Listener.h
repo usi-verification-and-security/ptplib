@@ -23,7 +23,7 @@ public:
 
     Listener(PTPLib::common::synced_stream & ss, const bool & ce, double wd)
     :
-        th_pool(ss, "thread_pool", std::thread::hardware_concurrency() - 1),
+        th_pool("thread_pool", std::thread::hardware_concurrency() - 1),
         communicator(channel, ss, ce, wd, th_pool),
         stream(ss),
         color_enabled(ce),
