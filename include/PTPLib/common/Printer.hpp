@@ -61,7 +61,7 @@ namespace PTPLib::common {
         template<typename... T>
         void print(Color::Code colorCode, const T & ...items) {
             const std::scoped_lock lock(stream_mutex);
-            if (colorCode != Color::FG_DEFAULT)
+            if (colorCode != Color::FG_DEFAULT )
                 out_stream << "\033[" << colorCode << "m";
             (out_stream << ... << items);
             out_stream << "\033[0m";
@@ -70,6 +70,20 @@ namespace PTPLib::common {
         template<typename... T>
         void println(Color::Code colorCode, const T & ...items) {
             print(colorCode, items..., '\n');
+        }
+
+        template<typename... T>
+        void println_bold(Color::Code colorCode, const T & ...items) {
+            print_bold(colorCode, items..., '\n');
+        }
+
+        template<typename... T>
+        void print_bold(Color::Code colorCode, const T & ...items) {
+            const std::scoped_lock lock(stream_mutex);
+            if (colorCode != Color::FG_DEFAULT)
+                out_stream << "\e[1m" <<"\033[" << colorCode << "m";
+            (out_stream << ... << items);
+            out_stream << "\033[0m";
         }
 
     private:
