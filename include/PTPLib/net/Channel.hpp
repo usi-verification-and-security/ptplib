@@ -127,6 +127,10 @@ namespace PTPLib::net {
             current_header = hd.copy(hd.keys());
         }
 
+        PTPLib::net::Header  get_current_header(const std::vector <std::string> & keys) {
+            return current_header.copy(keys);
+        }
+
         PTPLib::net::Header  get_current_header() { return current_header; }
 
         void clear_current_header() { current_header.clear(); }
