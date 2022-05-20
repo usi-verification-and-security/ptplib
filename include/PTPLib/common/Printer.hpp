@@ -80,8 +80,11 @@ namespace PTPLib::common {
         template<typename... T>
         void print_bold(Color::Code colorCode, const T & ...items) {
             const std::scoped_lock lock(stream_mutex);
+            std::time_t time = std::time(nullptr);
+            struct tm tm = *std::localtime(&time);
             if (colorCode != Color::FG_DEFAULT)
                 out_stream << "\e[1m" <<"\033[" << colorCode << "m";
+            (out_stream << std::put_time(&tm, "%Y-%m-%d %H:%M:%S") << "\t");
             (out_stream << ... << items);
             out_stream << "\033[0m";
         }
