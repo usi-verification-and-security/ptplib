@@ -44,6 +44,8 @@ namespace PTPLib::common
         CONST_STRING REPORT = "report";
         CONST_STRING MAX_MEMORY = "max_memory";
         CONST_STRING SCATTER_SPLIT = "scatter-split";
+        CONST_STRING SEARCH_COUNTER = "search_counter";
+        CONST_STRING STATUS_INFO = "status_info";
     } Param;
 
 
