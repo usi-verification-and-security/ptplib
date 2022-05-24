@@ -9,8 +9,10 @@
 #define PTPLIB_COMMON_PRINTER_HPP
 
 #include "Timer.hpp"
+
 #include <mutex>
 #include <cstring>
+#include <iomanip>
 
 namespace PTPLib::common {
 
