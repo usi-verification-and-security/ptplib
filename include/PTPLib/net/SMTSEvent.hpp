@@ -27,6 +27,11 @@ namespace PTPLib::net {
             this->body = std::move(str);
         }
 
+        SMTS_Event(PTPLib::net::Header & hd, std::string && str) {
+            this->header = hd;
+            this->body = std::move(str);
+        }
+
         SMTS_Event(PTPLib::net::Header & hd) {
             this->header = hd;
             this->body = std::string();
