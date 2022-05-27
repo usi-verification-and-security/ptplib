@@ -46,6 +46,7 @@ namespace PTPLib::common
         CONST_STRING SCATTER_SPLIT = "scatter-split";
         CONST_STRING SEARCH_COUNTER = "search_counter";
         CONST_STRING STATUS_INFO = "status_info";
+        CONST_STRING LEMMA_AMOUNT = "lemma_amount";
     } Param;
 
 
