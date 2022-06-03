@@ -13,6 +13,8 @@
 namespace PTPLib::common
 {
     typedef const std::string CONST_STRING;
+    typedef const std::size_t CONST_SIZE;
+
     static struct
     {
         CONST_STRING PARTITION = "partition";
@@ -49,6 +51,9 @@ namespace PTPLib::common
         CONST_STRING LEMMA_AMOUNT = "lemma_amount";
     } Param;
 
+    static struct {
+        CONST_SIZE MAX_SIZE = 10000;
+    } STATS;
 
     enum TASK
     {

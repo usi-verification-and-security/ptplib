@@ -9,7 +9,7 @@ project(Protocol-Example)
 
 find_package(Threads REQUIRED)
 
-set(PTPLib_repository "https://github.com/usi-verification-and-security/partition-channel.git")
+set(PTPLib_repository "https://github.com/usi-verification-and-security/ptplib.git")
 
 message(STATUS "Protocol Example is fetching PTPLib from " ${PTPLib_repository})
 message(STATUS "PTPLib Branch : ${PTPLib_branch}")

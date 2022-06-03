@@ -8,7 +8,7 @@ set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 project(PTPLib
         VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
         DESCRIPTION "Library for the partition tree protocol"
-        HOMEPAGE_URL "https://github.com/usi-verification-and-security/partition-channel")
+        HOMEPAGE_URL "https://github.com/usi-verification-and-security/ptplib")
 
 include(GNUInstallDirs)
 
