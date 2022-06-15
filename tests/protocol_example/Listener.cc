@@ -90,10 +90,19 @@ void Listener::notify_reset()
     _lk.unlock();
 }
 
-void Listener::queue_event(PTPLib::net::SMTS_Event && event)
+template<class T>
+bool Listener::queue_event(T && event)
 {
-    getChannel().push_back_query(std::move(event));
+    bool reset = false;
+    if (event.header[PTPLib::common::Param.COMMAND] == PTPLib::common::Command.STOP) {
+        reset = true;
+        getChannel().push_front_event(std::forward<T>(event));
+    }
+    else
+        getChannel().push_back_event(std::forward<T>(event));
+
     getChannel().notify_all();
+    return reset;
 }
 
 PTPLib::net::SMTS_Event Listener::generate_event(int counter, int time_passed)
