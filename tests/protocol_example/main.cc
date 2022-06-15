@@ -68,12 +68,7 @@ int main(int argc, char** argv) {
                     }
                     return true;
                 }());
-                if (event.header[PTPLib::common::Param.COMMAND] == PTPLib::common::Command.STOP) {
-                    reset = true;
-                    if (not listener.getChannel().isEmpty_query())
-                        listener.getChannel().clear_queries();
-                }
-                listener.queue_event(std::move(event));
+                reset = listener.queue_event(std::move(event));
             }
             if (reset)
                 break;

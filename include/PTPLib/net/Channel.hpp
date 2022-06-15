@@ -19,12 +19,12 @@
 #include <map>
 #include <algorithm>
 #include <chrono>
-#include <queue>
+#include <deque>
 #include <cassert>
 
 namespace PTPLib::net {
 
-    using queue_event = std::queue<PTPLib::net::SMTS_Event>;
+    using queue_event = std::deque<PTPLib::net::SMTS_Event>;
     using map_solver_clause = std::map<std::string, std::vector<PTPLib::net::Lemma>>;
     using time_duration = std::chrono::duration<double>;
 
@@ -52,15 +52,14 @@ namespace PTPLib::net {
 
     public:
         Channel()
-                :
-                requestStop(false),
-                reset(false),
-                isStopping(false),
-                clauseShareMode(false),
-                shouldLearnClause(true),
-                clauseLearnDuration(1000),
-                cube_and_conquer(false),
-                color_mode(false)
+        : requestStop(false)
+        , reset(false)
+        , isStopping(false)
+        , clauseShareMode(false)
+        , shouldLearnClause(true)
+        , clauseLearnDuration(1000)
+        , cube_and_conquer(false)
+        , color_mode(false)
         {
             m_learned_clauses = std::make_unique<map_solver_clause>();
             m_pulled_clauses = std::make_unique<map_solver_clause>();
@@ -111,15 +110,22 @@ namespace PTPLib::net {
 
         SMTS_Event pop_front_query() {
             SMTS_Event tmp_p(std::move(queries.front()));
-            queries.pop();
+            queries.pop_front();
             return tmp_p;
         }
 
         std::string & front_query() { return queries.front().header.at(PTPLib::common::Param.COMMAND); }
 
-        void push_back_query(SMTS_Event && hd) {
-            assert((not hd.header.at(PTPLib::common::Param.NODE).empty()) and (not hd.header.at(PTPLib::common::Param.NAME).empty()));
-            queries.push(std::move(hd));
+        template<class T>
+        void push_back_event(T && event) {
+            assert((not event.header.at(PTPLib::common::Param.NODE).empty()) and (not event.header.at(PTPLib::common::Param.NAME).empty()));
+            queries.push_back(std::forward<T>(event));
+        }
+
+        template<class T>
+        void push_front_event(T && event) {
+            assert((not event.header.at(PTPLib::common::Param.NODE).empty()) and (not event.header.at(PTPLib::common::Param.NAME).empty()));
+            queries.push_front(std::forward<T>(event));
         }
 
         void set_current_header(PTPLib::net::Header & hd) {

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 set(PTPLib_branch ${branch})
 if(NOT PTPLib_branch )
-    set(PTPLib_branch master)
+    set(PTPLib_branch dequeOfEvents)
 endif()
 
 project(Protocol-Example)

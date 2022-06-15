@@ -43,7 +43,8 @@ public:
 
     PTPLib::net::SMTS_Event generate_event(int counter, int solve_time);
 
-    void queue_event(PTPLib::net::SMTS_Event && header_payload);
+    template<class T>
+    bool queue_event(T && event);
 
     void pull_clause_worker(double seed, double n_min, double n_max);
 
