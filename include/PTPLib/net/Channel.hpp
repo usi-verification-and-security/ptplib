@@ -46,9 +46,8 @@ namespace PTPLib::net {
 
         bool clauseShareMode;
         std::atomic_bool shouldLearnClause;
-        int clauseLearnDuration;
 
-        bool cube_and_conquer;
+        bool parallel_mode;
         bool color_mode;
 
     public:
@@ -58,8 +57,7 @@ namespace PTPLib::net {
         , isStopping(false)
         , clauseShareMode(false)
         , shouldLearnClause(true)
-        , clauseLearnDuration(1000)
-        , cube_and_conquer(false)
+        , parallel_mode(false)
         , color_mode(false)
         {
             solverBranchToPublishLemmas = std::make_unique<map_solverBranch_lemmas>();
@@ -103,19 +101,19 @@ namespace PTPLib::net {
             std::swap(events, empty_q);
         }
 
-        size_t size_query() const { return events.size(); }
+        size_t size_event() const { return events.size(); }
 
-        bool isEmpty_query() const { return events.empty(); }
+        bool isEmpty_event() const { return events.empty(); }
 
         queue_event get_events() const & { return events; }
 
-        EVENT pop_front_query() {
+        EVENT pop_front_event() {
             EVENT tmp_p(std::move(events.front()));
             events.pop_front();
             return tmp_p;
         }
 
-        std::string & front_query() { return events.front().header.at(PTPLib::common::Param.COMMAND); }
+        std::string & front_event() { return events.front().header.at(PTPLib::common::Param.COMMAND); }
 
         void push_back_event(EVENT && event) {
             assert((not event.header.at(PTPLib::common::Param.NODE).empty()) and (not event.header.at(PTPLib::common::Param.NAME).empty()));
@@ -180,21 +178,17 @@ namespace PTPLib::net {
 
         void clearClauseShareMode() { clauseShareMode = false; }
 
-        void setClauseLearnDuration(int cld) { clauseLearnDuration = cld; }
-
-        int getClauseLearnDuration() const { return clauseLearnDuration; }
-
         bool shouldLearnClauses() const { return shouldLearnClause; }
 
         void setShouldLearnClauses() { shouldLearnClause = true; }
 
         void clearShouldLearnClauses() { shouldLearnClause = false; }
 
-        bool isSolverInParallelMode() const { return cube_and_conquer; }
+        bool isSolverInParallelMode() const { return parallel_mode; }
 
-        void setParallelMode() { cube_and_conquer = true; }
+        void setParallelMode() { parallel_mode = true; }
 
-        void clearParallelMode() { cube_and_conquer = false; }
+        void clearParallelMode() { parallel_mode = false; }
 
         bool isColorMode() const { return color_mode; }
 
@@ -210,7 +204,7 @@ namespace PTPLib::net {
 
         void wait_event_solver_reset(std::unique_lock<std::mutex> & lock) {
             cv.wait(lock, [&] {
-                return (shouldReset() or shallStop() or not isEmpty_query());
+                return (shouldReset() or shallStop() or not isEmpty_event());
             });
         }
 
@@ -218,7 +212,7 @@ namespace PTPLib::net {
             clear_pulled_clauses();
             clear_learned_clauses();
             clear_current_header();
-            if (not isEmpty_query())
+            if (not isEmpty_event())
                 clear_queries();
             clearShouldStop();
             clearShallStop();

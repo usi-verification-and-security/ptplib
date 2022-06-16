@@ -34,8 +34,8 @@ void Communicator::communicate_worker()
                 // Report Solver Result
             }
 
-        } else if (not getChannel().isEmpty_query()) {
-            auto event = getChannel().pop_front_query();
+        } else if (not getChannel().isEmpty_event()) {
+            auto event = getChannel().pop_front_event();
             assert(not event.header[PTPLib::common::Param.COMMAND].empty());
             stream.println(color_enabled ? PTPLib::common::Color::FG_Cyan : PTPLib::common::Color::FG_DEFAULT,
                             "[t COMMUNICATOR ] -> ", "updating the channel with ",
@@ -101,7 +101,7 @@ bool Communicator::execute_event(const PTPLib::net::SMTS_Event & event, bool & s
     } else if (event.header.at(PTPLib::common::Param.COMMAND) == PTPLib::common::Command.INCREMENTAL)
         shouldUpdateSolverAddress = true;
 
-    if (not channel.isEmpty_query() and channel.front_query() == PTPLib::common::Command.STOP)
+    if (not channel.isEmpty_event() and channel.front_event() == PTPLib::common::Command.STOP)
         return false;
 
     return true;
