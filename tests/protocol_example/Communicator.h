@@ -10,7 +10,7 @@
 #include "SMTSolver.cc"
 
 class Communicator {
-    PTPLib::net::Channel & channel;
+    PTPLib::net::Channel<PTPLib::net::SMTS_Event, PTPLib::net::Lemma> & channel;
     SMTSolver solver;
     PTPLib::common::synced_stream & stream;
     PTPLib::common::StoppableWatch timer;
@@ -21,7 +21,7 @@ class Communicator {
 
 public:
 
-    Communicator(PTPLib::net::Channel & ch, PTPLib::common::synced_stream & ss, const bool & ce, double seed, PTPLib::threads::ThreadPool & th)
+    Communicator(PTPLib::net::Channel<PTPLib::net::SMTS_Event, PTPLib::net::Lemma> & ch, PTPLib::common::synced_stream & ss, const bool & ce, double seed, PTPLib::threads::ThreadPool & th)
         :
         channel(ch),
         solver(ch, ss, timer, ce, seed),
@@ -36,6 +36,6 @@ public:
 
     void communicate_worker();
 
-    PTPLib::net::Channel & getChannel() { return channel;};
+    PTPLib::net::Channel<PTPLib::net::SMTS_Event, PTPLib::net::Lemma> & getChannel() { return channel;};
 
 };

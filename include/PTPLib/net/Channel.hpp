@@ -24,18 +24,19 @@
 
 namespace PTPLib::net {
 
-    using queue_event = std::deque<PTPLib::net::SMTS_Event>;
-    using map_solver_clause = std::map<std::string, std::vector<PTPLib::net::Lemma>>;
+    using map_solverBranch_lemmas = std::map<std::string, std::vector<PTPLib::net::Lemma>>;
     using time_duration = std::chrono::duration<double>;
 
+    template <class EVENT, class LEMMA>
     class Channel {
 
         std::mutex mutex;
         std::condition_variable cv;
 
-        queue_event queries;
-        std::unique_ptr<map_solver_clause> m_learned_clauses;
-        std::unique_ptr<map_solver_clause> m_pulled_clauses;
+        using queue_event = std::deque<EVENT>;
+        queue_event events;
+        std::unique_ptr<map_solverBranch_lemmas> solverBranchToPublishLemmas;
+        std::unique_ptr<map_solverBranch_lemmas> solverBranchToPulledLemmas;
 
         PTPLib::net::Header current_header;
 
@@ -61,71 +62,69 @@ namespace PTPLib::net {
         , cube_and_conquer(false)
         , color_mode(false)
         {
-            m_learned_clauses = std::make_unique<map_solver_clause>();
-            m_pulled_clauses = std::make_unique<map_solver_clause>();
+            solverBranchToPublishLemmas = std::make_unique<map_solverBranch_lemmas>();
+            solverBranchToPulledLemmas = std::make_unique<map_solverBranch_lemmas>();
         }
 
         std::mutex & getMutex() { return mutex; }
 
-        void insert_learned_clause(std::vector<PTPLib::net::Lemma> && toPublish_clauses) {
+        void insert_learned_clause(std::vector<LEMMA> && toPublish_clauses) {
             assert(not get_current_header().empty());
-            (*m_learned_clauses)[get_current_header().at(PTPLib::common::Param.NODE)].insert
+            (*solverBranchToPublishLemmas)[get_current_header().at(PTPLib::common::Param.NODE)].insert
                     (
-                            std::end((*m_learned_clauses)[get_current_header().at(PTPLib::common::Param.NODE)]),
+                            std::end((*solverBranchToPublishLemmas)[get_current_header().at(PTPLib::common::Param.NODE)]),
                             std::begin(toPublish_clauses), std::end(toPublish_clauses)
                     );
         }
 
-        void insert_pulled_clause(std::vector<PTPLib::net::Lemma> && toInject_clauses) {
+        void insert_pulled_clause(std::vector<LEMMA> && toInject_clauses) {
             assert(not get_current_header().empty());
-            (*m_pulled_clauses)[get_current_header().at(PTPLib::common::Param.NODE)].insert
+            (*solverBranchToPulledLemmas)[get_current_header().at(PTPLib::common::Param.NODE)].insert
                     (
-                            std::end((*m_pulled_clauses)[get_current_header().at(PTPLib::common::Param.NODE)]),
+                            std::end((*solverBranchToPulledLemmas)[get_current_header().at(PTPLib::common::Param.NODE)]),
                             std::begin(toInject_clauses), std::end(toInject_clauses)
                     );
         }
 
-        std::unique_ptr<map_solver_clause> swap_learned_clauses() {
-            auto out = std::make_unique<map_solver_clause>();
-            std::swap(out, m_learned_clauses);
+        std::unique_ptr<map_solverBranch_lemmas> swap_learned_clauses() {
+            auto out = std::make_unique<map_solverBranch_lemmas>();
+            std::swap(out, solverBranchToPublishLemmas);
             return out;
         };
 
-        std::unique_ptr<map_solver_clause> swap_pulled_clauses() {
-            auto out = std::make_unique<map_solver_clause>();
-            std::swap(out, m_pulled_clauses);
+        std::unique_ptr<map_solverBranch_lemmas> swap_pulled_clauses() {
+            auto out = std::make_unique<map_solverBranch_lemmas>();
+            std::swap(out, solverBranchToPulledLemmas);
             return out;
         };
 
         void clear_queries() {
             queue_event empty_q;
-            std::swap(queries, empty_q);
+            std::swap(events, empty_q);
         }
 
-        size_t size_query() const { return queries.size(); }
+        size_t size_query() const { return events.size(); }
 
-        bool isEmpty_query() const { return queries.empty(); }
+        bool isEmpty_query() const { return events.empty(); }
 
-        queue_event get_events() const & { return queries; }
+        queue_event get_events() const & { return events; }
 
-        SMTS_Event pop_front_query() {
-            SMTS_Event tmp_p(std::move(queries.front()));
-            queries.pop_front();
+        EVENT pop_front_query() {
+            EVENT tmp_p(std::move(events.front()));
+            events.pop_front();
             return tmp_p;
         }
 
-        std::string & front_query() { return queries.front().header.at(PTPLib::common::Param.COMMAND); }
+        std::string & front_query() { return events.front().header.at(PTPLib::common::Param.COMMAND); }
 
-        template<class T>
-        void push_back_event(T && event) {
+        void push_back_event(EVENT && event) {
             assert((not event.header.at(PTPLib::common::Param.NODE).empty()) and (not event.header.at(PTPLib::common::Param.NAME).empty()));
-            queries.push_back(std::forward<T>(event));
+            events.push_back(std::forward<EVENT>(event));
         }
 
-        template<class T>
-        void push_front_event(T && event) {
+        void push_front_event(EVENT && event) {
             assert((not event.header.at(PTPLib::common::Param.NODE).empty()) and (not event.header.at(PTPLib::common::Param.NAME).empty()));
-            queries.push_front(std::forward<T>(event));
+            events.push_front(std::forward<EVENT>(event));
         }
 
         void set_current_header(PTPLib::net::Header & hd) {
@@ -141,21 +140,21 @@ namespace PTPLib::net {
 
         void clear_current_header() { current_header.clear(); }
 
-        size_t size() const { return m_learned_clauses->size(); }
+        size_t size() const { return solverBranchToPublishLemmas->size(); }
 
-        auto begin() const { return m_learned_clauses->begin(); }
+        auto begin() const { return solverBranchToPublishLemmas->begin(); }
 
-        auto end() const { return m_learned_clauses->end(); }
+        auto end() const { return solverBranchToPublishLemmas->end(); }
 
         void notify_one() { cv.notify_one(); }
 
         void notify_all() { cv.notify_all(); }
 
-        void clear_learned_clauses() { m_learned_clauses->clear(); }
+        void clear_learned_clauses() { solverBranchToPublishLemmas->clear(); }
 
-        void clear_pulled_clauses() { m_pulled_clauses->clear(); }
+        void clear_pulled_clauses() { solverBranchToPulledLemmas->clear(); }
 
-        bool empty_learned_clauses() const { return (m_learned_clauses->empty()); }
+        bool empty_learned_clauses() const { return (solverBranchToPublishLemmas->empty()); }
 
         bool shouldReset() const { return reset; }
 
