@@ -8,7 +8,7 @@ public:
     enum class Result { SAT, UNSAT, UNKNOWN };
 
 private:
-    PTPLib::net::Channel & channel;
+    PTPLib::net::Channel<PTPLib::net::SMTS_Event, PTPLib::net::Lemma> & channel;
     bool learnSomeClauses(std::vector<PTPLib::net::Lemma> & learned_clauses);
     Result do_solve();
     Result result;
@@ -19,7 +19,7 @@ private:
     std::atomic<std::thread::id> thread_id;
 
 public:
-    SMTSolver(PTPLib::net::Channel & ch, PTPLib::common::synced_stream & st, PTPLib::common::StoppableWatch & tm, const bool & ce, double wd)
+    SMTSolver(PTPLib::net::Channel<PTPLib::net::SMTS_Event, PTPLib::net::Lemma> & ch, PTPLib::common::synced_stream & st, PTPLib::common::StoppableWatch & tm, const bool & ce, double wd)
     :
             channel (ch),
             result (Result::UNKNOWN),
@@ -33,13 +33,13 @@ public:
 
     Result   getResult()  const    { return result; }
 
-    PTPLib::net::Channel& getChannel() const    { return channel; }
+    PTPLib::net::Channel<PTPLib::net::SMTS_Event, PTPLib::net::Lemma> & getChannel() const    { return channel; }
 
     static int generate_rand(int min, int max);
 
     SMTSolver::Result search(char * smt_lib);
 
-    void inject_clauses(PTPLib::net::map_solver_clause & pulled_clauses);
+    void inject_clauses(PTPLib::net::map_solverBranch_lemmas & pulled_clauses);
 
     void initialise_logic();
 

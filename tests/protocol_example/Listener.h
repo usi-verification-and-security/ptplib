@@ -7,7 +7,7 @@
 #include <PTPLib/threads/ThreadPool.hpp>
 
 class Listener {
-    PTPLib::net::Channel channel;
+    PTPLib::net::Channel<PTPLib::net::SMTS_Event, PTPLib::net::Lemma> channel;
     PTPLib::threads::ThreadPool th_pool;
     Communicator communicator;
     PTPLib::common::synced_stream & stream;
@@ -52,11 +52,11 @@ public:
 
     bool read_lemma(std::vector<PTPLib::net::Lemma> & lemmas, PTPLib::net::Header & header);
 
-    bool write_lemma(std::unique_ptr<PTPLib::net::map_solver_clause> const & lemmas, PTPLib::net::Header & header);
+    bool write_lemma(std::unique_ptr<PTPLib::net::map_solverBranch_lemmas> const & lemmas, PTPLib::net::Header & header);
 
     void memory_checker();
 
-    PTPLib::net::Channel & getChannel() { return channel;};
+    PTPLib::net::Channel<PTPLib::net::SMTS_Event, PTPLib::net::Lemma> & getChannel() { return channel;};
 
     PTPLib::threads::ThreadPool & getPool() { return th_pool; }
 
