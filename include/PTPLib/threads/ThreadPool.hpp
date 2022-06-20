@@ -38,21 +38,17 @@ namespace PTPLib::threads {
 
         std::queue<std::pair<std::function<void()>, std::string>> tasks = {};
 
-        ui32 thread_count;
-
-        std::unique_ptr<std::thread[]> threads;
+        std::unique_ptr<std::vector<std::thread>> threads;
 
         std::atomic<ui32> tasks_total = 0;
 
         PTPLib::common::synced_stream * syncedStream = nullptr;
     public:
-        ThreadPool(std::string _pool_name = std::string(), const ui32 & _thread_count = std::thread::hardware_concurrency())
-        :
-            pool_name    (_pool_name),
-            thread_count (_thread_count),
-            threads      (new std::thread[_thread_count])
-        {
-           create_threads();
+        ThreadPool(std::string _pool_name = std::string(), const ui32 _thread_count = 0)
+        : pool_name    (_pool_name) {
+            threads = std::make_unique<std::vector<std::thread>>(_thread_count);
+            if (_thread_count != 0)
+                create_threads(_thread_count);
         }
 
         ~ThreadPool() {
@@ -80,15 +76,15 @@ namespace PTPLib::threads {
             return tasks_total;
         }
 
-        ui32 get_thread_count() const {
-            return thread_count;
+        std::size_t get_thread_count() const {
+            return threads->size();
         }
 
 
         template<typename T, typename F>
         void parallelize_loop(T first_index, T last_index, const F & loop, ui32 num_tasks = 0) {
             if (num_tasks == 0)
-                num_tasks = thread_count;
+                num_tasks = get_thread_count();
             if (last_index < first_index)
                 std::swap(last_index, first_index);
             size_t total_size = last_index - first_index + 1;
@@ -113,6 +109,24 @@ namespace PTPLib::threads {
             }
         }
 
+        template<typename F, typename R = std::invoke_result_t<std::decay_t<F>>>
+        std::future<R> submit_task(const F & task, std::string task_name=std::string()) {
+            std::shared_ptr<std::promise<R>> task_promise(new std::promise<R>);
+            std::future<R> future = task_promise->get_future();
+            push_task([task, task_promise] {
+                try {
+                    task_promise->set_value(task());
+                }
+                catch (...) {
+                    try {
+                        task_promise->set_exception(std::current_exception());
+                    }
+                    catch (...) {
+                    }
+                }
+            }, task_name);
+            return future;
+        }
 
         template<typename F>
         void push_task(const F & task, std::string task_name = std::string()) {
@@ -131,16 +145,15 @@ namespace PTPLib::threads {
         }
 
 
-        void reset(const ui32 & _thread_count = std::thread::hardware_concurrency()) {
+        void reset(const ui32 & _thread_count = std::thread::hardware_concurrency() - 1) {
             bool was_paused = paused;
             paused = true;
             wait_for_tasks();
             running = false;
             destroy_threads();
-            thread_count = _thread_count ? _thread_count : std::thread::hardware_concurrency();
-            threads.reset(new std::thread[thread_count]);
+            threads->clear();
             paused = was_paused;
-            create_threads();
+            create_threads(_thread_count);
             running = true;
         }
 
@@ -205,8 +218,15 @@ namespace PTPLib::threads {
         }
 
         void destroy_threads() {
-            for (ui32 i = 0; i < thread_count; i++) {
-                threads[i].join();
+            for (int i = 0; i < threads->size(); ++i) {
+                threads->at(i).join();
+            }
+        }
+
+        void increase(ui32 tc) {
+            assert(get_thread_count() < std::thread::hardware_concurrency());
+            for (ui32 i = 0; i < tc; ++i) {
+                threads->push_back(std::move(std::thread(&ThreadPool::worker, this)));
             }
         }
 
@@ -215,9 +235,10 @@ namespace PTPLib::threads {
         ui32 sleep_duration = 1000;
 
     private:
-        void create_threads() {
-            for (ui32 i = 0; i < thread_count; ++i) {
-                threads[i] = std::thread(&ThreadPool::worker, this);
+        void create_threads(const ui32 _thread_count) {
+            assert(_thread_count < std::thread::hardware_concurrency());
+            for (ui32 i = 0; i < _thread_count; ++i) {
+                threads->push_back(std::thread(&ThreadPool::worker, this));
             }
         }
 
