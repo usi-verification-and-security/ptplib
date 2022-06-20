@@ -26,6 +26,7 @@ namespace PTPLib::common
         CONST_STRING SOLVE = "solve";
         CONST_STRING LEMMAS = "lemmas";
         CONST_STRING TERMINATE = "terminate";
+        CONST_STRING RESUME = "resume";
     } Command;
 
     static struct
@@ -49,6 +50,12 @@ namespace PTPLib::common
         CONST_STRING SEARCH_COUNTER = "search_counter";
         CONST_STRING STATUS_INFO = "status_info";
         CONST_STRING LEMMA_AMOUNT = "lemma_amount";
+        CONST_STRING LOG_MODE = "enableLog";
+        CONST_STRING L_PUSH_MIN = "lemma_push_min";
+        CONST_STRING L_PUSH_Max = "lemma_push_max";
+        CONST_STRING L_PULL_MIN = "lemma_pull_min";
+        CONST_STRING L_PULL_MAX= "lemma_pull_max";
+
     } Param;
 
     static struct {
