@@ -148,4 +148,44 @@ inline std::string get_task_name(int index) {
     }
     return "";
 }
+
+template <typename T>
+class move_ptr
+{
+public:
+    explicit move_ptr(T* ptr = nullptr) noexcept : m_ptr(ptr) {
+    }
+    ~move_ptr() noexcept {
+        delete m_ptr;
+    }
+
+    move_ptr(const move_ptr& other) = delete;
+    move_ptr& operator=(const move_ptr& other) = delete;
+
+    move_ptr(move_ptr&& other) noexcept : m_ptr(other.release()) {
+    }
+
+    move_ptr& operator=(move_ptr&& other) noexcept {
+        reset(other.release());
+        return *this;
+    }
+
+    T& operator*() const noexcept {
+        return *m_ptr;
+    }
+
+    T* release() noexcept {
+        return std::exchange(m_ptr, nullptr);
+    }
+
+    void reset(T* ptr = nullptr) noexcept {
+        if (m_ptr != ptr) {
+            delete m_ptr;
+            m_ptr = ptr;
+        }
+    }
+
+private:
+    T* m_ptr;
+};
 #endif // PTPLIB_COMMON_LIB_HPP
