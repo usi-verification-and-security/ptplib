@@ -122,7 +122,7 @@ inline std::string to_string<bool>(const bool & b) {
 }
 
 inline bool to_bool(const std::string & str) {
-    return (str == "true" or str == "TRUE") ? true : false;
+    return (str == "true" or str == "TRUE" or str == "1") ? true : false;
 }
 
 inline std::string get_task_name(int index) {
