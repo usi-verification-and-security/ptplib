@@ -115,14 +115,16 @@ namespace PTPLib::net {
 
         std::string & front_event() { return events.front().header.at(PTPLib::common::Param.COMMAND); }
 
-        void push_back_event(EVENT && event) {
+        template <typename Arg>
+        void push_back_event(Arg && event) {
             assert((not event.header.at(PTPLib::common::Param.NODE).empty()) and (not event.header.at(PTPLib::common::Param.NAME).empty()));
-            events.push_back(std::forward<EVENT>(event));
+            events.push_back(std::forward<Arg>(event));
         }
 
-        void push_front_event(EVENT && event) {
+        template <typename Arg>
+        void push_front_event(Arg && event) {
             assert((not event.header.at(PTPLib::common::Param.NODE).empty()) and (not event.header.at(PTPLib::common::Param.NAME).empty()));
-            events.push_front(std::forward<EVENT>(event));
+            events.push_front(std::forward<Arg>(event));
         }
 
         void set_current_header(PTPLib::net::Header & hd) {
@@ -130,11 +132,11 @@ namespace PTPLib::net {
             current_header = hd.copy(hd.keys());
         }
 
-        PTPLib::net::Header  get_current_header(const std::vector <std::string> & keys) {
+        PTPLib::net::Header get_current_header(const std::vector<std::string> & keys) {
             return current_header.copy(keys);
         }
 
-        PTPLib::net::Header  get_current_header() { return current_header; }
+        PTPLib::net::Header get_current_header() { return current_header; }
 
         void clear_current_header() { current_header.clear(); }
 
