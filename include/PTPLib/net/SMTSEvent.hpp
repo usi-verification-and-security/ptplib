@@ -22,14 +22,16 @@ namespace PTPLib::net {
 
         SMTS_Event() {}
 
-        SMTS_Event(PTPLib::net::Header && hd, std::string && str) {
-            this->header = std::move(hd);
-            this->body = std::move(str);
+        template <typename HD, typename PL>
+        SMTS_Event(HD && hd, PL && str) {
+            this->header = std::forward<HD>(hd);
+            this->body = std::forward<PL>(str);
         }
 
-        SMTS_Event(PTPLib::net::Header & hd, std::string && str) {
+        template <typename HD, typename PL>
+        SMTS_Event(HD & hd, PL && str) {
             this->header = hd;
-            this->body = std::move(str);
+            this->body = std::forward<PL>(str);
         }
 
         SMTS_Event(PTPLib::net::Header & hd) {
