@@ -132,6 +132,13 @@ namespace PTPLib::net {
             current_header = hd.copy(hd.keys());
         }
 
+        void set_current_header(PTPLib::net::Header & hd, const std::vector<std::string> & keys) {
+            assert((hd.count(PTPLib::common::Param.NODE) == 1) and
+            ((hd.count(PTPLib::common::Param.NAME) == 1)) and
+            ((hd.count(PTPLib::common::Param.QUERY) == 1)));
+            current_header = hd.copy(keys);
+        }
+
         PTPLib::net::Header get_current_header(const std::vector<std::string> & keys) {
             return current_header.copy(keys);
         }
