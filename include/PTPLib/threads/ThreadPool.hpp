@@ -218,7 +218,7 @@ namespace PTPLib::threads {
         }
 
         void destroy_threads() {
-            for (int i = 0; i < threads->size(); ++i) {
+            for (std::size_t i = 0; i < get_thread_count(); ++i) {
                 threads->at(i).join();
             }
         }
@@ -226,7 +226,7 @@ namespace PTPLib::threads {
         void increase(ui32 tc) {
             assert(get_thread_count() < std::thread::hardware_concurrency());
             for (ui32 i = 0; i < tc; ++i) {
-                threads->push_back(std::move(std::thread(&ThreadPool::worker, this)));
+                threads->push_back(std::thread(&ThreadPool::worker, this));
             }
         }
 
