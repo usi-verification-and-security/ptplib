@@ -310,29 +310,22 @@ void Listener::periodic_clauseLearning_worker()
 {
     int random_n = waiting_duration ? waiting_duration * (100) : SMTSolver::generate_rand(1000, 2000);
     if (getChannel().isClauseShareMode()) {
-        th_pool.push_task
-        (
-            [this, random_n]
-            {
-                while (true)
-                {
-                    std::unique_lock<std::mutex> lk(channel.getMutex());
-                    if (getChannel().wait_for_reset(lk, std::chrono::milliseconds(static_cast<int>(random_n*2))))
-                        break;
-                    assert([&]() {
-                        if (not lk.owns_lock()) {
-                            throw PTPLib::common::Exception(__FILE__, __LINE__, "periodic_clauseLearning_worker can't take the lock");
-                        }
-                        return true;
-                    }());
-                    getChannel().setShouldLearnClauses();
-                    lk.unlock();
+        while (true)
+        {
+            std::unique_lock<std::mutex> lk(channel.getMutex());
+            if (getChannel().wait_for_reset(lk, std::chrono::milliseconds(static_cast<int>(random_n*2))))
+                break;
+            assert([&]() {
+                if (not lk.owns_lock()) {
+                    throw PTPLib::common::Exception(__FILE__, __LINE__, "periodic_clauseLearning_worker can't take the lock");
                 }
-                stream.println(color_enabled ? PTPLib::common::Color::FG_BrightBlue : PTPLib::common::Color::FG_DEFAULT,
-                           "[t CLAUSELEARN ] -> clause learn timout: ", random_n);
-            },
-            ::get_task_name(PTPLib::common::TASK::CLAUSELEARN)
-       );
+                return true;
+            }());
+            getChannel().setShouldLearnClauses();
+            lk.unlock();
+        }
+        stream.println(color_enabled ? PTPLib::common::Color::FG_BrightBlue : PTPLib::common::Color::FG_DEFAULT,
+                       "[t CLAUSELEARN ] -> clause learn timout: ", random_n);
     }
 
 }
