@@ -59,7 +59,7 @@ namespace PTPLib::common
     } Param;
 
     static struct {
-        CONST_SIZE MAX_SIZE = 10000;
+        CONST_SIZE MAX_SIZE = 100;
     } STATS;
 
     enum TASK
