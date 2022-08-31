@@ -46,9 +46,10 @@ namespace PTPLib::threads {
     public:
         ThreadPool(std::string _pool_name = std::string(), const ui32 _thread_count = 0)
         : pool_name    (_pool_name) {
-            threads = std::make_unique<std::vector<std::thread>>(_thread_count);
+            threads = std::make_unique<std::vector<std::thread>>();
             if (_thread_count != 0)
                 create_threads(_thread_count);
+            else create_threads(std::thread::hardware_concurrency() - 1);
         }
 
         ~ThreadPool() {
