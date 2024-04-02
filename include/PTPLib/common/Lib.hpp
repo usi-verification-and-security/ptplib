@@ -17,6 +17,8 @@
 #include <map>
 #include <vector>
 #include <functional>
+#include <utility>
+#include <cstdint>
 
 inline void split(const std::string & string, const std::string & delimiter,
                   std::function<void(const std::string &)> callback, uint32_t limit = 0) {
