@@ -138,14 +138,6 @@ namespace PTPLib::threads {
             }
         }
 
-
-        template<typename F, typename... A>
-        void push_task(const F & task, const A & ...args) {
-            push_task([task, args...]
-                      { task(args...); });
-        }
-
-
         void reset(const ui32 & _thread_count = std::thread::hardware_concurrency() - 1) {
             bool was_paused = paused;
             paused = true;
